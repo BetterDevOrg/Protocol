@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { DesignBadge } from "./design-badge";
-
 function IconUsers() {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-brand-purple" aria-hidden>
@@ -17,7 +15,7 @@ function IconUsers() {
 
 function IconSparkles() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-brand-teal" aria-hidden>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-brand-sky" aria-hidden>
       <path d="M12 3v3M12 18v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M3 12h3M18 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       <circle cx="12" cy="12" r="2" stroke="currentColor" strokeWidth="1.5" />
     </svg>
@@ -41,7 +39,7 @@ function IconChat() {
 
 function IconShield() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-brand-teal" aria-hidden>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-brand-sky" aria-hidden>
       <path
         d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
         stroke="currentColor"
@@ -93,7 +91,7 @@ export function WhyJoin() {
             </p>
             <Link
               href="#"
-              className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-brand-purple transition hover:text-violet-700"
+              className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-brand-pink transition hover:text-brand-purple"
             >
               Read our community manifesto <span aria-hidden>→</span>
             </Link>
@@ -114,7 +112,6 @@ export function WhyJoin() {
         </div>
       </div>
 
-      <DesignBadge className="absolute bottom-6 right-5 z-20 hidden sm:flex lg:right-8" />
     </section>
   );
 }

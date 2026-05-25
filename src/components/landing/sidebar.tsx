@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 const nav = [
+  { href: "#events", label: "EVENTS" },
   { href: "#process", label: "PROCESS" },
   { href: "#values", label: "VALUES" },
   { href: "#network", label: "NETWORK" },
@@ -36,7 +37,7 @@ export function LandingSidebar() {
         </span>
         <button
           type="button"
-          className="flex size-9 items-center justify-center rounded-lg bg-brand-purple text-white shadow-md transition hover:bg-violet-600"
+          className="flex size-9 items-center justify-center rounded-lg bg-brand-purple text-white shadow-md transition hover:bg-brand-pink"
           aria-label="Log in"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

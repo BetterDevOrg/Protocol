@@ -14,7 +14,11 @@ function CodeBracketsIcon({ className }: { className?: string }) {
   );
 }
 
-export function FinalCta() {
+type FinalCtaProps = {
+  onJoin?: () => void;
+};
+
+export function FinalCta({ onJoin }: FinalCtaProps) {
   return (
     <>
       <div className="h-1.5 w-full bg-black" aria-hidden />
@@ -30,14 +34,25 @@ export function FinalCta() {
             Become an early member today and help shape the engineering community in your city.
           </p>
           <div className="mt-10 flex flex-col items-center gap-3">
-            <Link
-              href="/join"
-              className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-zinc-950 px-8 py-4 text-base font-semibold text-white shadow-lg transition hover:bg-black"
-            >
-              <CodeBracketsIcon className="text-brand-mint" />
-              Get Your Community ID
-            </Link>
-            <p className="text-sm font-medium text-brand-mint">100% free to join. No spam, ever.</p>
+            {onJoin ? (
+              <button
+                type="button"
+                onClick={onJoin}
+                className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-zinc-950 px-8 py-4 text-base font-semibold text-white shadow-lg transition hover:bg-black"
+              >
+                <CodeBracketsIcon className="text-brand-sky" />
+                Get Your Community ID
+              </button>
+            ) : (
+              <Link
+                href="/join"
+                className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-zinc-950 px-8 py-4 text-base font-semibold text-white shadow-lg transition hover:bg-black"
+              >
+                <CodeBracketsIcon className="text-brand-sky" />
+                Get Your Community ID
+              </Link>
+            )}
+            <p className="text-sm font-medium text-brand-sky">100% free to join. No spam, ever.</p>
           </div>
         </div>
       </section>
@@ -46,7 +61,7 @@ export function FinalCta() {
         <div className="mx-auto flex max-w-[1200px] flex-col items-center justify-between gap-8 px-5 py-12 sm:flex-row sm:px-8 lg:px-10">
           <div>
             <p className="text-xl font-bold lowercase tracking-tight text-black">betterdev</p>
-            <p className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.35em] text-[#8A2BE2]">Community</p>
+            <p className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.35em] text-brand-purple">Community</p>
           </div>
           <nav className="flex flex-wrap items-center justify-center gap-8 text-sm font-medium text-[#6B7280]">
             <a href="https://twitter.com" className="transition hover:text-zinc-900">

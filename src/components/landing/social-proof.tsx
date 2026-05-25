@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { DesignBadge } from "./design-badge";
 
 const avatars = [
   { img: "https://i.pravatar.cc/96?img=5", large: false },
@@ -25,15 +24,15 @@ export function SocialProof() {
 
         <div className="mx-auto mt-12 flex max-w-3xl flex-wrap justify-center gap-4 sm:gap-5">
           <div className="min-w-[140px] flex-1 rounded-2xl bg-[#18181B] px-6 py-6 sm:min-w-[160px]">
-            <p className="text-3xl font-bold text-brand-purplesoft sm:text-4xl">24</p>
+            <p className="text-3xl font-bold text-brand-pink sm:text-4xl">24</p>
             <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Cities active</p>
           </div>
           <div className="min-w-[140px] flex-1 rounded-2xl bg-[#18181B] px-6 py-6 sm:min-w-[160px]">
-            <p className="text-3xl font-bold text-brand-cyan sm:text-4xl">1.2k</p>
+            <p className="text-3xl font-bold text-brand-sky sm:text-4xl">1.2k</p>
             <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Engineers</p>
           </div>
           <div className="min-w-[140px] flex-1 rounded-2xl bg-[#18181B] px-6 py-6 sm:min-w-[160px]">
-            <p className="text-3xl font-bold text-brand-lavender sm:text-4xl">350+</p>
+            <p className="text-3xl font-bold text-brand-purple sm:text-4xl">350+</p>
             <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">Meetups held</p>
           </div>
         </div>
@@ -57,7 +56,6 @@ export function SocialProof() {
         </div>
       </div>
 
-      <DesignBadge className="absolute bottom-8 right-5 z-20 hidden sm:flex lg:right-10" />
     </section>
   );
 }

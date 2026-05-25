@@ -21,9 +21,106 @@ body {
     pointer-events: none;
     position: absolute;
     inset: 0;
+    z-index: 1;
     opacity: 0.22;
     mix-blend-mode: overlay;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     background-size: 200px 200px;
+  }
+}
+
+/* Next Meetup card: subtle vertical float (no hover) — ~6px over 3.5s ease-in-out */
+@keyframes meetup-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.meetup-card-float {
+  animation: meetup-float 3.5s ease-in-out infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meetup-card-float {
+    animation: none;
+  }
+}
+
+/* Community ID card: hover straightens from tilt (ease-out); mouse leave eases back to tilt (ease-in) */
+.community-id-card {
+  transform: rotate(4deg);
+  transform-origin: center center;
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.35);
+  /* Slow drift back to tilt — gentle ease-in, “floating” settle */
+  transition:
+    transform 1.45s cubic-bezier(0.42, 0, 0.22, 1),
+    box-shadow 1.45s cubic-bezier(0.42, 0, 0.22, 1);
+}
+
+.community-id-card:hover {
+  transform: rotate(0deg);
+  box-shadow: 0 30px 58px -12px rgb(0 0 0 / 0.42);
+  /* Straighten with soft ease-out — calm, like leveling on water */
+  transition:
+    transform 1.45s cubic-bezier(0.28, 0.85, 0.34, 1),
+    box-shadow 1.45s cubic-bezier(0.28, 0.85, 0.34, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .community-id-card,
+  .community-id-card:hover {
+    transform: rotate(4deg);
+    box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.35);
+    transition: none;
+  }
+}
+
+@keyframes gallery-slide-active {
+  0% {
+    clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+    transform: scale(1.04);
+  }
+  100% {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    transform: scale(1);
+  }
+}
+
+.gallery-slide-active {
+  animation: gallery-slide-active 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes event-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.event-marquee-track {
+  width: max-content;
+  animation: event-marquee 40s linear infinite;
+}
+
+.event-marquee-mask {
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-slide-active {
+    animation: none;
+    clip-path: none;
+    transform: none;
+  }
+
+  .event-marquee-track {
+    animation: none;
   }
 }

@@ -1,5 +1,3 @@
-import { DesignBadge } from "./design-badge";
-
 function IconPin() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-brand-purple" aria-hidden>
@@ -17,7 +15,7 @@ function IconPin() {
 
 function IconCube() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-brand-teal" aria-hidden>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-brand-sky" aria-hidden>
       <path
         d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
         stroke="currentColor"
@@ -47,19 +45,19 @@ function IconTrend() {
 const cards = [
   {
     icon: <IconPin />,
-    iconBg: "bg-violet-100",
+    iconBg: "bg-pink-50",
     title: "Get Matched",
     body: "Sign up and get grouped with 6–10 curated engineers based in your city who share similar interests and career stages.",
   },
   {
     icon: <IconCube />,
-    iconBg: "bg-cyan-50",
+    iconBg: "bg-sky-50",
     title: "Walk + Coffee",
     body: "Meet up on a Saturday morning for light exercise, grabbing coffee, and having stress-free, engaging conversations.",
   },
   {
     icon: <IconTrend />,
-    iconBg: "bg-violet-50",
+    iconBg: "bg-purple-50",
     title: "Build & Grow",
     body: "Form lasting relationships, learn from peers, discover opportunities, and increase your community reputation score over time.",
   },
@@ -94,7 +92,6 @@ export function HowItWorks() {
         </div>
       </div>
 
-      <DesignBadge className="absolute bottom-6 right-5 z-20 hidden sm:flex lg:right-8" />
     </section>
   );
 }

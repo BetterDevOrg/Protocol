@@ -6,15 +6,13 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          purple: "#7C3AED",
-          purpledeep: "#2E0854",
-          purplesoft: "#A855F7",
-          lavender: "#C084FC",
-          teal: "#06B6D4",
-          cyan: "#22D3EE",
-          mint: "#4FD1C5",
-          navy: "#0F172A",
+          pink: "#E91E8C",
+          sky: "#00B4D8",
+          purple: "#6B21A8",
+          purpledeep: "#4C1D95",
+          white: "#FFFFFF",
           ink: "#111827",
+          navy: "#0F172A",
         },
       },
       fontFamily: {
@@ -25,14 +23,19 @@ const config: Config = {
         card: "0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06)",
         "card-lg": "0 10px 40px -10px rgb(0 0 0 / 0.25)",
         float: "0 25px 50px -12px rgb(0 0 0 / 0.35)",
+        "gallery-frame": "0 20px 50px -12px rgb(233 30 140 / 0.25), 0 12px 24px -8px rgb(0 180 216 / 0.2)",
       },
       backgroundImage: {
         "hero-gradient":
-          "linear-gradient(135deg, #3B0B6F 0%, #1E1B4B 35%, #0F172A 55%, #0B4F5C 85%, #042F2E 100%)",
-        "cta-gradient": "linear-gradient(90deg, #2E0854 0%, #0A0A0A 55%, #0A0A0A 100%)",
-        "word-real": "linear-gradient(90deg, #A855F7 0%, #3B82F6 100%)",
-        "icon-tile": "linear-gradient(135deg, #7C3AED 0%, #2563EB 100%)",
-        "rep-bar": "linear-gradient(90deg, #22D3EE 0%, #06B6D4 100%)",
+          "linear-gradient(135deg, #4C1D95 0%, #6B21A8 28%, #1a0a2e 48%, #0f172a 72%, #004e6b 100%)",
+        "cta-gradient": "linear-gradient(90deg, #4C1D95 0%, #6B21A8 35%, #0a0a0a 70%, #0a0a0a 100%)",
+        "word-real": "linear-gradient(90deg, #E91E8C 0%, #00B4D8 100%)",
+        "icon-tile": "linear-gradient(135deg, #E91E8C 0%, #00B4D8 100%)",
+        "rep-bar": "linear-gradient(90deg, #00B4D8 0%, #E91E8C 100%)",
+        "brand-sash": "linear-gradient(180deg, #00B4D8 0%, #E91E8C 100%)",
+        "brand-sash-diag": "linear-gradient(135deg, #00B4D8 0%, #E91E8C 55%, #6B21A8 100%)",
+        "gallery-placeholder":
+          "linear-gradient(135deg, rgba(233,30,140,0.35) 0%, rgba(0,180,216,0.35) 50%, rgba(107,33,168,0.45) 100%)",
       },
     },
   },

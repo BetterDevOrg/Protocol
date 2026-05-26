@@ -1,9 +1,16 @@
-/** Deterministic-looking invite token for mock UI until Supabase assigns real slugs. */
-export function generateInviteLink(origin: string): string {
-  const token =
-    typeof crypto !== "undefined" && "randomUUID" in crypto
-      ? crypto.randomUUID().slice(0, 8)
-      : Math.random().toString(36).slice(2, 10);
+export function generateInviteSlug(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID().replace(/-/g, "").slice(0, 10);
+  }
+  return Math.random().toString(36).slice(2, 12);
+}
+
+export function inviteUrl(origin: string, slug: string): string {
   const base = origin.replace(/\/$/, "");
-  return `${base}/invite/${token}`;
+  return `${base}/invite/${slug}`;
+}
+
+/** @deprecated Use inviteUrl with DB slug */
+export function generateInviteLink(origin: string): string {
+  return inviteUrl(origin, generateInviteSlug());
 }

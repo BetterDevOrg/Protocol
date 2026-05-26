@@ -9,6 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.10.3",
+    "@supabase/supabase-js": "^2.106.2",
+    "libphonenumber-js": "^1.13.3",
     "next": "15.5.15",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

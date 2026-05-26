@@ -23,7 +23,6 @@ export function assignCommunityId(): { communityId: string; memberDisplay: strin
 }
 
 export function registerMember(payload: RegistrationPayload, origin: string): Member {
-  void payload;
   const { communityId, memberDisplay } = assignCommunityId();
   return {
     communityId,
@@ -31,5 +30,11 @@ export function registerMember(payload: RegistrationPayload, origin: string): Me
     joinDate: new Date().toISOString(),
     reputation: 0,
     inviteLink: generateInviteLink(origin),
+    fullName: payload.fullName,
+    email: payload.email,
+    city: payload.city,
+    country: payload.country,
+    phoneE164: payload.phone,
+    xHandle: payload.xUsername,
   };
 }

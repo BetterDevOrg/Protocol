@@ -19,6 +19,10 @@ export const metadata: Metadata = {
   title: "betterdev — Meet Engineers. Build Real Connections.",
   description:
     "Join a decentralized network where meaningful relationships start offline.",
+  icons: {
+    icon: [{ url: "/favicon.ico", sizes: "any" }],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   openGraph: {
     title: "betterdev",
     description: "Decentralized global community of engineers",

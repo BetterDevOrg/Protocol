@@ -1,5 +1,7 @@
 import { generateInviteSlug } from "@/lib/invite-link";
 import { BETTERDEV_COUNTRIES } from "@/lib/constants";
+import { isGoogleSheetsConfigured } from "@/lib/google-sheets/config";
+import { registerMemberViaGoogleSheets } from "@/lib/google-sheets/register";
 import { memberRowToMember } from "@/lib/members";
 import { createServiceClient } from "@/lib/supabase/service";
 import {
@@ -46,6 +48,16 @@ function validate(payload: unknown): RegistrationPayload | null {
   };
 }
 
+function requestMeta(request: Request) {
+  return {
+    sourceIp:
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      request.headers.get("x-real-ip") ??
+      null,
+    userAgent: request.headers.get("user-agent"),
+  };
+}
+
 export async function POST(request: Request) {
   try {
     const payload = validate(await request.json());
@@ -63,44 +75,71 @@ export async function POST(request: Request) {
     }
 
     const origin = new URL(request.url).origin;
-    const supabase = createServiceClient();
-    const inviteSlug = generateInviteSlug();
+    const useSupabase = process.env.NEXT_PUBLIC_USE_SUPABASE === "true";
 
-    const { data, error } = await supabase
-      .from("members")
-      .insert({
-        full_name: payload.fullName,
-        email: payload.email,
-        phone_e164: phoneCheck.phoneE164,
-        city: payload.city,
-        country: payload.country,
-        x_handle: payload.xUsername,
-        x_profile_link: payload.xProfileLink ?? null,
-        screenshot_file_name: payload.screenshotFileName ?? null,
-        followed_x: payload.followedX ?? false,
-        joined_community: payload.joinedCommunity ?? false,
-        invite_slug: inviteSlug,
-        reputation: 0,
-      })
-      .select()
-      .single();
+    if (useSupabase) {
+      const supabase = createServiceClient();
+      const inviteSlug = generateInviteSlug();
 
-    if (error) {
-      if (error.code === "23505") {
+      const { data, error } = await supabase
+        .from("members")
+        .insert({
+          full_name: payload.fullName,
+          email: payload.email,
+          phone_e164: phoneCheck.phoneE164,
+          city: payload.city,
+          country: payload.country,
+          x_handle: payload.xUsername,
+          x_profile_link: payload.xProfileLink ?? null,
+          screenshot_file_name: payload.screenshotFileName ?? null,
+          followed_x: payload.followedX ?? false,
+          joined_community: payload.joinedCommunity ?? false,
+          invite_slug: inviteSlug,
+          reputation: 0,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        if (error.code === "23505") {
+          return NextResponse.json(
+            { error: "This email is already registered. Use another email or contact us." },
+            { status: 409 },
+          );
+        }
+        console.error("[members/register] supabase", error);
         return NextResponse.json(
-          { error: "This email is already registered. Use another email or contact us." },
-          { status: 409 },
+          { error: "Could not save your registration. Check Supabase setup and try again." },
+          { status: 500 },
         );
       }
-      console.error("[members/register]", error);
+
+      return NextResponse.json({ member: memberRowToMember(data, origin) });
+    }
+
+    if (!isGoogleSheetsConfigured()) {
       return NextResponse.json(
-        { error: "Could not save your registration. Check Supabase setup and try again." },
-        { status: 500 },
+        {
+          error:
+            "Registration storage is not configured. Set GOOGLE_SHEETS_WEBAPP_URL and GOOGLE_SHEETS_API_TOKEN in .env.local.",
+        },
+        { status: 503 },
       );
     }
 
-    const member = memberRowToMember(data, origin);
-    return NextResponse.json({ member });
+    try {
+      const member = await registerMemberViaGoogleSheets(
+        payload,
+        phoneCheck.phoneE164,
+        origin,
+        requestMeta(request),
+      );
+      return NextResponse.json({ member });
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Registration failed.";
+      const status = message.includes("already registered") ? 409 : 500;
+      return NextResponse.json({ error: message }, { status });
+    }
   } catch (e) {
     console.error("[members/register]", e);
     const message =

@@ -1,6 +1,5 @@
 import type { Member, RegistrationPayload } from "@/types/member";
 import { inviteUrl } from "@/lib/invite-link";
-import { registerMember as registerMockMember } from "@/lib/mock-member";
 import type { MemberRow } from "@/lib/supabase/types";
 
 export function memberRowToMember(row: MemberRow, origin: string): Member {
@@ -43,17 +42,11 @@ async function validateWithServer(
 
 export async function registerMember(payload: RegistrationPayload, origin: string): Promise<Member> {
   const phoneE164 = await validateWithServer(origin, payload.phone, payload.country);
-  const payloadWithPhone = { ...payload, phone: phoneE164 };
-
-  const useSupabase = process.env.NEXT_PUBLIC_USE_SUPABASE === "true";
-  if (!useSupabase) {
-    return registerMockMember(payloadWithPhone, origin);
-  }
 
   const res = await fetch(`${origin}/api/members/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payloadWithPhone),
+    body: JSON.stringify({ ...payload, phone: phoneE164 }),
   });
 
   let body: { member?: Member; error?: string } = {};
@@ -72,4 +65,20 @@ export async function registerMember(payload: RegistrationPayload, origin: strin
   }
 
   return body.member;
+}
+
+export async function lookupMemberByEmail(origin: string, email: string): Promise<Member | null> {
+  const res = await fetch(
+    `${origin}/api/members/lookup?email=${encodeURIComponent(email.trim().toLowerCase())}`,
+    { cache: "no-store" },
+  );
+
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    const body = (await res.json()) as { error?: string };
+    throw new Error(body.error ?? "Could not look up member.");
+  }
+
+  const body = (await res.json()) as { member?: Member };
+  return body.member ?? null;
 }

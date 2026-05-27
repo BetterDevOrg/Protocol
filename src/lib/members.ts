@@ -40,13 +40,15 @@ async function validateWithServer(
   return body.phoneE164;
 }
 
-export async function registerMember(payload: RegistrationPayload, origin: string): Promise<Member> {
-  const phoneE164 = await validateWithServer(origin, payload.phone, payload.country);
+export async function validateMemberPhone(origin: string, phone: string, country: string): Promise<string> {
+  return validateWithServer(origin, phone, country);
+}
 
+export async function registerMember(payload: RegistrationPayload, origin: string): Promise<Member> {
   const res = await fetch(`${origin}/api/members/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...payload, phone: phoneE164 }),
+    body: JSON.stringify(payload),
   });
 
   let body: { member?: Member; error?: string } = {};

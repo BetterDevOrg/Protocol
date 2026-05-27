@@ -15,7 +15,7 @@ import {
   COUNTRY_WHATSAPP_LINKS,
   type BetterDevCountry,
 } from "@/lib/constants";
-import { registerMember } from "@/lib/members";
+import { registerMember, validateMemberPhone } from "@/lib/members";
 import { dialCodeForCountry, validatePhoneForCountry } from "@/lib/phone-validation";
 import type { Member } from "@/types/member";
 import type { OnboardingModalStep } from "@/types/onboarding";
@@ -25,6 +25,8 @@ type Props = {
   open: boolean;
   onClose: () => void;
 };
+
+type SubmitPhase = "idle" | "validating" | "registering";
 
 function formatJoinedMonthYear(iso: string): string {
   const d = new Date(iso);
@@ -40,7 +42,7 @@ export function OnboardingModal({ open, onClose }: Props) {
   const titleId = useId();
   const [step, setStep] = useState<OnboardingModalStep>("gate");
   const [member, setMember] = useState<Member | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const [submitPhase, setSubmitPhase] = useState<SubmitPhase>("idle");
   const [error, setError] = useState<string | null>(null);
 
   const [fullName, setFullName] = useState("");
@@ -53,6 +55,8 @@ export function OnboardingModal({ open, onClose }: Props) {
   const [xProfileLink, setXProfileLink] = useState("");
   const [screenshotFileName, setScreenshotFileName] = useState<string | null>(null);
 
+  const submitting = submitPhase !== "idle";
+
   const stripLeadingDialPrefix = useCallback((value: string, prefix: string | null) => {
     const trimmed = value.trim();
     if (!prefix || !trimmed.startsWith(prefix)) return trimmed;
@@ -62,7 +66,7 @@ export function OnboardingModal({ open, onClose }: Props) {
   const reset = useCallback(() => {
     setStep("gate");
     setMember(null);
-    setSubmitting(false);
+    setSubmitPhase("idle");
     setError(null);
     setFullName("");
     setEmail("");
@@ -134,15 +138,19 @@ export function OnboardingModal({ open, onClose }: Props) {
   };
 
   const submitRegistration = async () => {
+    if (submitting) return;
     setError(null);
-    setSubmitting(true);
     try {
       const origin = window.location.origin;
+      setSubmitPhase("validating");
+      const phoneE164 = await validateMemberPhone(origin, phone.trim(), country);
+
+      setSubmitPhase("registering");
       const m = await registerMember(
         {
           fullName: fullName.trim(),
           email: email.trim(),
-          phone: phone.trim(),
+          phone: phoneE164,
           city: city.trim(),
           country,
           xUsername: xUsername.trim().replace(/^@/, ""),
@@ -158,7 +166,7 @@ export function OnboardingModal({ open, onClose }: Props) {
     } catch (e) {
       setError(e instanceof Error ? e.message : "Registration failed.");
     } finally {
-      setSubmitting(false);
+      setSubmitPhase("idle");
     }
   };
 
@@ -242,7 +250,7 @@ export function OnboardingModal({ open, onClose }: Props) {
                   Your details
                 </h2>
                 <p className="mt-1.5 text-sm leading-relaxed text-zinc-400">
-                  We&apos;ll save your profile and issue your Community ID instantly.
+                  We&apos;ll verify your phone first. Your profile is saved on the final Join BetterDev button.
                 </p>
               </div>
 
@@ -338,7 +346,7 @@ export function OnboardingModal({ open, onClose }: Props) {
                   disabled={!canContinueFromForm}
                   onClick={goToOptional}
                 >
-                  Continue
+                  Continue to final step
                 </OnboardingPrimaryButton>
               </div>
             </div>
@@ -351,7 +359,7 @@ export function OnboardingModal({ open, onClose }: Props) {
                   Optional verification
                 </h2>
                 <p className="mt-1.5 text-sm text-zinc-400">
-                  Help us recognize you—skip anytime. Nothing here is required to get your ID.
+                  Help us recognize you, then click Join BetterDev to save your registration.
                 </p>
               </div>
 
@@ -382,11 +390,12 @@ export function OnboardingModal({ open, onClose }: Props) {
                 <OnboardingSecondaryButton className="sm:flex-1" onClick={() => setStep("form")} disabled={submitting}>
                   Back
                 </OnboardingSecondaryButton>
-                <OnboardingSecondaryButton className="sm:flex-1" onClick={submitRegistration} disabled={submitting}>
-                  {submitting ? "Saving…" : "Skip for now"}
-                </OnboardingSecondaryButton>
                 <OnboardingPrimaryButton className="sm:flex-1" onClick={submitRegistration} disabled={submitting}>
-                  {submitting ? "Saving…" : "Join BetterDev"}
+                  {submitPhase === "validating"
+                    ? "Validating..."
+                    : submitPhase === "registering"
+                      ? "Saving registration..."
+                      : "Join BetterDev"}
                 </OnboardingPrimaryButton>
               </div>
             </div>

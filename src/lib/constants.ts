@@ -33,3 +33,5 @@ export const COMMUNITY_URLS = {
   /** Generic community hub (Telegram/Discord landing) */
   communityHub: "https://t.me/betterdev",
 } as const;
+
+export const CONTACT_EMAIL = "betterdevCommunity.team@gmail.com";

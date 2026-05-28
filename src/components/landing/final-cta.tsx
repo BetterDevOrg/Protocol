@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { COMMUNITY_URLS } from "@/lib/constants";
 
 function CodeBracketsIcon({ className }: { className?: string }) {
   return (
@@ -64,15 +65,18 @@ export function FinalCta({ onJoin }: FinalCtaProps) {
             <p className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.35em] text-brand-purple">Community</p>
           </div>
           <nav className="flex flex-wrap items-center justify-center gap-8 text-sm font-medium text-[#6B7280]">
-            <a href="https://twitter.com" className="transition hover:text-zinc-900">
-              Twitter
+            <a href={COMMUNITY_URLS.x} className="transition hover:text-zinc-900" target="_blank" rel="noreferrer">
+              X
             </a>
-            <a href="https://github.com" className="transition hover:text-zinc-900">
-              GitHub
-            </a>
-            <a href="mailto:hello@betterdev.dev" className="transition hover:text-zinc-900">
+            <Link href="/partnership" className="transition hover:text-zinc-900">
+              Partnership
+            </Link>
+            <Link href="/careers" className="transition hover:text-zinc-900">
+              Careers
+            </Link>
+            <Link href="/contact" className="transition hover:text-zinc-900">
               Contact
-            </a>
+            </Link>
           </nav>
           <p className="text-center text-xs text-[#6B7280] sm:text-right">
             © {new Date().getFullYear()} betterdev community. All rights reserved.

@@ -46,7 +46,7 @@ export default function CareersPage() {
           <div className="mt-10 rounded-2xl border border-brand-pink/30 bg-brand-pink/10 p-5">
             <h2 className="text-lg font-semibold">Interested in contributing?</h2>
             <p className="mt-2 text-sm leading-relaxed text-zinc-300">
-              Send your location, role of interest, and links that show your work or community experience.
+            Send your location, role of interest, CV, cover letter, and links that show your work or community experience.
             </p>
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
               <a

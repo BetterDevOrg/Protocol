@@ -35,25 +35,35 @@ export function FinalCta({ onJoin }: FinalCtaProps) {
             Become an early member today and help shape the engineering community in your city.
           </p>
           <div className="mt-10 flex flex-col items-center gap-3">
-            {onJoin ? (
-              <button
-                type="button"
-                onClick={onJoin}
-                className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-zinc-950 px-8 py-4 text-base font-semibold text-white shadow-lg transition hover:bg-black"
-              >
-                <CodeBracketsIcon className="text-brand-sky" />
-                Get Your Community ID
-              </button>
-            ) : (
+            <div className="flex flex-col gap-3 sm:flex-row">
+              {onJoin ? (
+                <button
+                  type="button"
+                  onClick={onJoin}
+                  className="inline-flex items-center justify-center gap-3 rounded-full border border-white/10 bg-zinc-950 px-8 py-4 text-base font-semibold text-white shadow-lg transition hover:bg-black"
+                >
+                  <CodeBracketsIcon className="text-brand-sky" />
+                  Get Your Community ID
+                </button>
+              ) : (
+                <Link
+                  href="/join"
+                  className="inline-flex items-center justify-center gap-3 rounded-full border border-white/10 bg-zinc-950 px-8 py-4 text-base font-semibold text-white shadow-lg transition hover:bg-black"
+                >
+                  <CodeBracketsIcon className="text-brand-sky" />
+                  Get Your Community ID
+                </Link>
+              )}
               <Link
-                href="/join"
-                className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-zinc-950 px-8 py-4 text-base font-semibold text-white shadow-lg transition hover:bg-black"
+                href="/meetup"
+                className="inline-flex items-center justify-center gap-3 rounded-full border border-white/20 bg-white px-8 py-4 text-base font-semibold text-zinc-950 shadow-lg transition hover:bg-zinc-100"
               >
-                <CodeBracketsIcon className="text-brand-sky" />
-                Get Your Community ID
+                Attend Our Next Meetup
               </Link>
-            )}
-            <p className="text-sm font-medium text-brand-sky">100% free to join. No spam, ever.</p>
+            </div>
+            <p className="text-sm font-medium text-brand-sky">
+              Join free, then use BetterDev Passport to verify real-world participation.
+            </p>
           </div>
         </div>
       </section>

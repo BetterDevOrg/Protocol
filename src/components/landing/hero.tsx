@@ -61,30 +61,32 @@ export function Hero({ onJoin }: HeroProps) {
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-4">
-            {onJoin ? (
-              <button
-                type="button"
-                onClick={onJoin}
-                className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-[15px] font-semibold text-zinc-900 shadow-float transition hover:bg-zinc-50"
-              >
-                Join the Community
-                <span className="text-lg font-light" aria-hidden>
-                  →
-                </span>
-              </button>
-            ) : (
-              <Link
-                href="/join"
-                className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-[15px] font-semibold text-zinc-900 shadow-float transition hover:bg-zinc-50"
-              >
-                Join the Community
-                <span className="text-lg font-light" aria-hidden>
-                  →
-                </span>
-              </Link>
-            )}
+            <div className="flex flex-wrap gap-3">
+              {onJoin ? (
+                <button
+                  type="button"
+                  onClick={onJoin}
+                  className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-[15px] font-semibold text-zinc-900 shadow-float transition hover:bg-zinc-50"
+                >
+                  Join the Community
+                  <span className="text-lg font-light" aria-hidden>
+                    →
+                  </span>
+                </button>
+              ) : (
+                <Link
+                  href="/join"
+                  className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-[15px] font-semibold text-zinc-900 shadow-float transition hover:bg-zinc-50"
+                >
+                  Join the Community
+                  <span className="text-lg font-light" aria-hidden>
+                    →
+                  </span>
+                </Link>
+              )}
+            </div>
             <p className="max-w-[220px] text-[13px] leading-snug text-white/45">
-              Limited to 100 new members per city this month.
+              Limited to 100 new members per city. Meetup attendance powers the Passport reputation layer.
             </p>
           </div>
         </div>
@@ -136,8 +138,11 @@ export function Hero({ onJoin }: HeroProps) {
               </div>
 
               {/* Mobile: full bleed inside stack with safe insets; sm+: overlapping pill (~52% width, -left 17%) */}
-              <div className="pointer-events-auto absolute left-3 right-3 top-full z-[3] -translate-y-1/2 sm:inset-x-auto sm:left-auto sm:right-auto sm:w-[52%] sm:min-w-[154px] sm:max-w-[202px] sm:-translate-x-0 sm:-left-[17%]">
-                <div className="meetup-card-float rounded-xl border border-zinc-100/90 bg-white px-3 py-2 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.35)] sm:rounded-[1.125rem] sm:px-4 sm:py-2.5">
+              <div className="pointer-events-auto absolute left-3 right-3 top-full z-[3] -translate-y-1/2 sm:inset-x-auto sm:left-auto sm:right-auto sm:w-[68%] sm:min-w-[230px] sm:max-w-[285px] sm:-translate-x-0 sm:-left-[28%]">
+                <Link
+                  href="/meetup"
+                  className="meetup-card-float block rounded-xl border border-zinc-100/90 bg-white px-3 py-2 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.35)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_48px_-10px_rgba(0,0,0,0.4)] sm:rounded-[1.125rem] sm:px-4 sm:py-2.5"
+                >
                   <div className="flex items-center gap-2 sm:gap-2.5">
                     <div className="flex shrink-0 -space-x-1.5 sm:-space-x-2">
                       <Image
@@ -162,14 +167,16 @@ export function Hero({ onJoin }: HeroProps) {
                         className="size-7 rounded-full border-2 border-white object-cover ring-1 ring-zinc-100 sm:size-8"
                       />
                     </div>
-                    <div className="min-w-0 flex-1 leading-snug">
-                      <p className="text-[11px] font-bold tracking-tight text-zinc-900 sm:text-xs">Next Meetup</p>
-                      <p className="mt-0.5 text-[11px] font-semibold tabular-nums text-brand-pink sm:mt-1 sm:text-xs">
-                        Saturday, 10:00 AM
+                    <div className="min-w-0 flex-1 leading-tight">
+                      <p className="truncate text-[11px] font-bold tracking-tight text-zinc-900 sm:text-xs">
+                        Attend Next Meetup
+                      </p>
+                      <p className="truncate text-[10px] font-semibold text-brand-pink sm:text-[11px]">
+                        Tap to verify & claim Passport NFT
                       </p>
                     </div>
                   </div>
-                </div>
+                </Link>
               </div>
             </div>
           </div>

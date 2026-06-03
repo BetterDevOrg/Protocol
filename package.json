@@ -6,11 +6,18 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "contracts:compile": "hardhat compile",
+    "contracts:test": "hardhat test",
+    "contracts:deploy:sepolia": "hardhat run scripts/deploy-betterdev.ts --network arbitrumSepolia",
+    "contracts:export": "ts-node scripts/export-abis.ts"
   },
   "dependencies": {
+    "@chainlink/contracts": "^1.5.0",
+    "@openzeppelin/contracts": "^5.4.0",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.106.2",
+    "ethers": "^6.16.0",
     "libphonenumber-js": "^1.13.3",
     "next": "15.5.15",
     "react": "^19.0.0",
@@ -18,14 +25,20 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
+    "@nomicfoundation/hardhat-chai-matchers": "^2.1.0",
+    "@nomicfoundation/hardhat-ethers": "^3.1.0",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "autoprefixer": "^10.4.20",
+    "dotenv": "^17.2.3",
     "eslint": "^9.16.0",
     "eslint-config-next": "^15.1.0",
+    "hardhat": "^2.27.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.16",
+    "ts-node": "^10.9.2",
     "typescript": "^5.7.2"
   }
 }

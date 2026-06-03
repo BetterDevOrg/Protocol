@@ -289,10 +289,37 @@ The next engineering step is wiring the `/meetup` UI to deployed contracts on Ar
 
 ## Smart Contract Deployment Notes
 
-The VRF scaffold expects Chainlink contracts in your Solidity toolchain:
+The repo now includes a Hardhat-based smart contract suite:
+
+```text
+contracts/BetterDevPassport.sol
+contracts/ReputationRegistry.sol
+contracts/MeetupRegistry.sol
+contracts/BuilderCircleVRF.sol
+```
+
+Install contract dependencies:
 
 ```bash
-npm install @chainlink/contracts
+npm install
+```
+
+Compile contracts:
+
+```bash
+npm run contracts:compile
+```
+
+Run contract tests:
+
+```bash
+npm run contracts:test
+```
+
+Export ABIs for frontend use:
+
+```bash
+npm run contracts:export
 ```
 
 Typical deployment inputs:
@@ -302,6 +329,12 @@ Typical deployment inputs:
 - Key hash
 - Callback gas limit
 - Request confirmations
+
+Deployment is prepared but should only be run after `.env.local` contains a safe RPC URL and deployer private key:
+
+```bash
+npm run contracts:deploy:sepolia
+```
 
 The contract flow:
 

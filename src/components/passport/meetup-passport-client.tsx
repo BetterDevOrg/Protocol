@@ -1,6 +1,7 @@
 "use client";
 
 import { createBuilderCircles } from "@/lib/builder-circles";
+import { getBetterDevContractStatus } from "@/lib/contracts";
 import {
   CHAINLINK_VRF,
   CURRENT_DEPLOYMENT,
@@ -137,6 +138,7 @@ export function MeetupPassportClient() {
       ).reduce((sum, action) => sum + action.points, 0),
     [],
   );
+  const contractStatus = getBetterDevContractStatus();
 
   const connectWallet = async () => {
     setError(null);
@@ -260,6 +262,9 @@ export function MeetupPassportClient() {
             </span>
             <span className="rounded-full border border-white/10 bg-white/[0.035] px-4 py-2 text-xs font-bold text-zinc-400">
               Supported: {CHAIN_AGNOSTIC_STRATEGY.supportedChains.join(", ")}
+            </span>
+            <span className="rounded-full border border-white/10 bg-white/[0.035] px-4 py-2 text-xs font-bold text-zinc-400">
+              Mode: {contractStatus.configured ? "Contracts ready" : "Demo fallback"}
             </span>
           </div>
 

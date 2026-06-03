@@ -330,7 +330,7 @@ If it is public proof, reputation, attendance, or coordination data, it may be o
 
 ## MVP Contract Set
 
-For the Arbitrum buildathon, BetterDev should focus on three Arbitrum-first contracts while preserving the chain-agnostic member identity model:
+For the Arbitrum buildathon, BetterDev should focus on an Arbitrum-first contract suite while preserving the chain-agnostic member identity model:
 
 ### BetterDevPassport
 
@@ -361,6 +361,18 @@ Purpose:
 ```text
 This member attended this event and this meetup used verifiable randomness for group matching.
 ```
+
+### BuilderCircleVRF
+
+Chainlink VRF randomness consumer for fair Builder Circle creation.
+
+Purpose:
+
+```text
+This meetup used verifiable randomness to create fair builder groups.
+```
+
+The app can keep attendee lists and final display off-chain while using the on-chain VRF seed as the public coordination proof.
 
 ## Expandability
 

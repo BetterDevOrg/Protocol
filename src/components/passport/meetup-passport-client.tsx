@@ -1,7 +1,13 @@
 "use client";
 
 import { createBuilderCircles } from "@/lib/builder-circles";
-import { getBetterDevContractStatus } from "@/lib/contracts";
+import {
+  contractExplorerUrl,
+  getBetterDevContractStatus,
+  getBuilderCircleVrfContract,
+  meetupIdToBytes32,
+  transactionExplorerUrl,
+} from "@/lib/contracts";
 import {
   CHAINLINK_VRF,
   CURRENT_DEPLOYMENT,
@@ -19,6 +25,7 @@ import { useMemo, useState } from "react";
 
 type WalletStatus = "idle" | "connecting" | "connected" | "unsupported";
 type PassportStep = "connect" | "passport" | "attendance";
+type VrfStatus = "idle" | "requesting" | "waiting" | "fulfilled" | "fallback" | "error";
 
 type EthereumProvider = {
   request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
@@ -71,14 +78,18 @@ const faqItems = [
     answer: `BetterDev is chain-agnostic from the protocol layer. The current deployment is ${CURRENT_DEPLOYMENT.deployment}, with Solana supported in the architecture so identity and reputation remain portable.`,
   },
   {
-    question: "How does Chainlink VRF help BetterDev?",
+    question: "How are Builder Circles assigned?",
     answer:
-      "Chainlink VRF powers verifiable random matching for Builder Circles. Organizers request randomness on-chain, and BetterDev uses the verified seed to assign meetup attendees into fair groups that cannot be manually manipulated.",
+      "We use verifiable random assignment so groups are fair and cannot be rigged. You are placed with a mix of roles so networking feels intentional, not cliquey. Behind the scenes, this is powered by Chainlink for transparent proof.",
   },
 ];
 
 function shortAddress(address: string) {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
+function shortTxHash(hash: string) {
+  return `${hash.slice(0, 8)}…${hash.slice(-6)}`;
 }
 
 function Kicker({ children, tone = "sky" }: { children: string; tone?: "sky" | "pink" | "muted" }) {
@@ -127,7 +138,8 @@ export function MeetupPassportClient() {
   const [step, setStep] = useState<PassportStep>("connect");
   const [passportMinted, setPassportMinted] = useState(false);
   const [attendanceVerified, setAttendanceVerified] = useState(false);
-  const [vrfSeed, setVrfSeed] = useState<number | null>(null);
+  const [vrfStatus, setVrfStatus] = useState<VrfStatus>("idle");
+  const [vrfTxHash, setVrfTxHash] = useState<string | null>(null);
   const [builderCircles, setBuilderCircles] = useState<BuilderCircle[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -189,10 +201,65 @@ export function MeetupPassportClient() {
     setAttendanceVerified(true);
   };
 
-  const generateBuilderCircles = () => {
+  const generateFallbackBuilderCircles = () => {
     const simulatedSeed = Math.floor(Date.now() % 1_000_000_000);
-    setVrfSeed(simulatedSeed);
+    setVrfStatus("fallback");
     setBuilderCircles(createBuilderCircles(DEMO_ATTENDEES, simulatedSeed, DEMO_MEETUP.groupSize));
+  };
+
+  const readFulfilledVrfSeed = async () => {
+    setError(null);
+    try {
+      const contract = await getBuilderCircleVrfContract();
+      const [seed, fulfilled] = (await contract.getMeetupSeed(meetupIdToBytes32(DEMO_MEETUP.id))) as [bigint, boolean];
+
+      if (!fulfilled) {
+        setVrfStatus("waiting");
+        setError("Still working on it. Check again in a moment.");
+        return;
+      }
+
+      const seedNumber = Number(seed % BigInt(1_000_000_000));
+      setVrfStatus("fulfilled");
+      setError(null);
+      setBuilderCircles(createBuilderCircles(DEMO_ATTENDEES, seedNumber, DEMO_MEETUP.groupSize));
+    } catch (e) {
+      setVrfStatus("error");
+      setError(e instanceof Error ? e.message : "We couldn't load your groups. Please try again.");
+    }
+  };
+
+  const requestLiveVrfBuilderCircles = async () => {
+    if (!contractStatus.configured) {
+      generateFallbackBuilderCircles();
+      return;
+    }
+
+    if (walletStatus !== "connected") {
+      setError("Connect the organizer wallet to create live groups.");
+      return;
+    }
+
+    setError(null);
+    try {
+      setVrfStatus("requesting");
+      const contract = await getBuilderCircleVrfContract();
+      const tx = await contract.requestBuilderCircleRandomness(meetupIdToBytes32(DEMO_MEETUP.id), {
+        gasLimit: 350_000,
+      });
+      await tx.wait();
+      setVrfTxHash(tx.hash);
+      setVrfStatus("waiting");
+      await readFulfilledVrfSeed();
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "We couldn't create groups. Please try again.";
+      if (message.toLowerCase().includes("already requested") || message.toLowerCase().includes("already fulfilled")) {
+        await readFulfilledVrfSeed();
+        return;
+      }
+      setVrfStatus("error");
+      setError(message);
+    }
   };
 
   return (
@@ -437,23 +504,35 @@ export function MeetupPassportClient() {
       <section id="infrastructure" className="mx-auto max-w-[1200px] px-5 py-20 sm:px-8 lg:px-10 lg:py-24">
         <div className="relative min-h-[460px] overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.035] p-8 sm:p-12">
           <AbstractCube />
-          <Kicker>Coordination Layer</Kicker>
-          <h2 className="mt-4 text-3xl font-black tracking-[-0.04em]">Chainlink VRF Builder Circles</h2>
+          <Kicker>Meetup coordination</Kicker>
+          <h2 className="mt-4 text-3xl font-black tracking-[-0.04em]">Builder Circles</h2>
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-zinc-500">
-            BetterDev uses {CHAINLINK_VRF.name} to generate verifiable randomness for meetup matching. Organizers
-            request randomness on the current deployment network, then the verified seed shuffles attendees into fair
-            Builder Circles while reputation stays attached to the BetterDev member ID.
+            At every meetup, we split attendees into small groups so you meet engineers you would not normally talk to.
+            Groups are assigned fairly — no favoritism, no manual picking.
           </p>
+          <p className="mt-2 text-xs text-zinc-600">Powered by verifiable randomness via Chainlink.</p>
 
           <div className="mt-10 max-w-xl rounded-2xl border border-white/10 bg-black p-6 sm:p-7">
             <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-5">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-zinc-600">Session ID</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-zinc-600">Meetup</p>
                 <p className="mt-2 font-bold">{DEMO_MEETUP.name}</p>
               </div>
               <div className="text-right">
                 <p className="text-[10px] text-zinc-600">Status</p>
-                <p className="mt-1 text-[10px] font-black uppercase text-emerald-400">Ready for shuffle</p>
+                <p
+                  className={`mt-1 text-[10px] font-black uppercase ${
+                    vrfStatus === "fulfilled" ? "text-emerald-400" : "text-brand-sky"
+                  }`}
+                >
+                  {vrfStatus === "fulfilled"
+                    ? "Groups ready"
+                    : vrfStatus === "waiting" || vrfStatus === "requesting"
+                      ? "Assigning"
+                      : contractStatus.configured
+                        ? "Ready"
+                        : "Preview mode"}
+                </p>
               </div>
             </div>
             <div className="grid grid-cols-3 gap-4 py-5">
@@ -462,22 +541,104 @@ export function MeetupPassportClient() {
                 <p className="mt-2 font-black">{DEMO_ATTENDEES.length}</p>
               </div>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">Groups of</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">Per group</p>
                 <p className="mt-2 font-black">{DEMO_MEETUP.groupSize}</p>
               </div>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">Deployment</p>
-                <p className="mt-2 font-black text-brand-sky">{PASSPORT_NETWORK.name}</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">City</p>
+                <p className="mt-2 font-black text-brand-sky">{DEMO_MEETUP.city}</p>
               </div>
             </div>
             <button
               type="button"
-              onClick={generateBuilderCircles}
-              className="w-full rounded-xl bg-brand-sash-diag px-5 py-3 text-sm font-black text-white shadow-[0_0_36px_-14px_rgba(233,30,140,0.95)] transition hover:opacity-95"
+              onClick={requestLiveVrfBuilderCircles}
+              disabled={vrfStatus === "requesting" || vrfStatus === "waiting"}
+              className="w-full rounded-xl bg-brand-sash-diag px-5 py-3 text-sm font-black text-white shadow-[0_0_36px_-14px_rgba(233,30,140,0.95)] transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Generate Builder Circles
+              {vrfStatus === "requesting"
+                ? "Creating groups…"
+                : vrfStatus === "waiting"
+                  ? "Assigning groups…"
+                  : contractStatus.configured
+                    ? "Create fair groups"
+                    : "Preview groups"}
             </button>
-            {vrfSeed !== null && <p className="mt-4 break-all font-mono text-xs text-brand-sky">VRF seed: {vrfSeed}</p>}
+            {contractStatus.configured && (
+              <p className="mt-3 text-center text-xs text-zinc-600">
+                Organizers: connect the host wallet to run live group assignment.
+              </p>
+            )}
+            {vrfStatus === "waiting" && (
+              <div className="mt-4 space-y-3">
+                <p className="rounded-2xl border border-brand-sky/20 bg-brand-sky/10 p-4 text-xs leading-relaxed text-brand-sky">
+                  Assigning groups… This usually takes a minute.
+                </p>
+                <button
+                  type="button"
+                  onClick={readFulfilledVrfSeed}
+                  className="w-full text-xs font-bold text-brand-sky transition hover:text-white"
+                >
+                  Check group status
+                </button>
+              </div>
+            )}
+            {vrfStatus === "fulfilled" && builderCircles.length > 0 && (
+              <p className="mt-4 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-xs leading-relaxed text-emerald-200">
+                Groups are ready. Find your table below.
+              </p>
+            )}
+            <details className="mt-5 rounded-2xl border border-white/10 bg-white/[0.025] p-4 text-xs text-zinc-500">
+              <summary className="cursor-pointer list-none font-bold text-zinc-400 transition hover:text-white [&::-webkit-details-marker]:hidden">
+                Details for organizers
+              </summary>
+              <div className="mt-4 space-y-3 border-t border-white/10 pt-4">
+                <div className="flex items-center justify-between gap-3">
+                  <span>Assignment</span>
+                  <span className="font-black text-brand-sky">
+                    {contractStatus.configured ? "Fair & verifiable" : "Local preview"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span>This session</span>
+                  <span className="font-black text-white">{DEMO_ATTENDEES.length} attendees</span>
+                </div>
+                {contractStatus.configured && (
+                  <p className="leading-relaxed">
+                    Groups are generated automatically so every attendee gets an equal chance at placement.
+                  </p>
+                )}
+                {!contractStatus.configured && (
+                  <p className="leading-relaxed">
+                    Preview mode uses local randomness. Deploy contracts to enable live verifiable assignment.
+                  </p>
+                )}
+                {contractStatus.configured && (
+                  <>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">
+                      Powered by {CHAINLINK_VRF.name}
+                    </p>
+                    <a
+                      href={contractExplorerUrl(contractStatus.addresses.builderCircleVrf)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex font-bold text-brand-sky transition hover:text-white"
+                    >
+                      View on-chain proof
+                    </a>
+                  </>
+                )}
+                {vrfTxHash && (
+                  <a
+                    href={transactionExplorerUrl(vrfTxHash)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex font-mono font-bold text-brand-sky transition hover:text-white"
+                  >
+                    Transaction {shortTxHash(vrfTxHash)}
+                  </a>
+                )}
+              </div>
+            </details>
           </div>
 
           {builderCircles.length > 0 && (

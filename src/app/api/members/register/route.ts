@@ -28,6 +28,10 @@ function validate(payload: unknown): RegistrationPayload | null {
   const xProfileLink = typeof p.xProfileLink === "string" ? p.xProfileLink.trim() : undefined;
   const screenshotFileName =
     typeof p.screenshotFileName === "string" ? p.screenshotFileName : undefined;
+  const referredByInviteSlug =
+    typeof p.referredByInviteSlug === "string"
+      ? p.referredByInviteSlug.replace(/[^a-zA-Z0-9]/g, "").slice(0, 32)
+      : undefined;
   const followedX = p.followedX === true;
   const joinedCommunity = p.joinedCommunity === true;
 
@@ -45,6 +49,7 @@ function validate(payload: unknown): RegistrationPayload | null {
     screenshotFileName: screenshotFileName ?? undefined,
     followedX,
     joinedCommunity,
+    referredByInviteSlug: referredByInviteSlug || undefined,
   };
 }
 

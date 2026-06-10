@@ -49,6 +49,7 @@ export async function registerMemberViaGoogleSheets(
     xProfileLink: payload.xProfileLink ?? "",
     followedX: payload.followedX ?? false,
     joinedCommunity: payload.joinedCommunity ?? false,
+    referredByInviteSlug: payload.referredByInviteSlug ?? "",
     sourceIp: meta.sourceIp ?? "",
     userAgent: meta.userAgent ?? "",
   });

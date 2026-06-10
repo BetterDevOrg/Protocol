@@ -24,6 +24,7 @@ import { useCallback, useEffect, useId, useMemo, useState } from "react";
 type Props = {
   open: boolean;
   onClose: () => void;
+  referralSlug?: string | null;
 };
 
 type SubmitPhase = "idle" | "validating" | "registering";
@@ -38,7 +39,7 @@ const COUNTRY_LABEL_BY_VALUE = Object.fromEntries(
   BETTERDEV_COUNTRIES.filter((c) => c.value).map((c) => [c.value, c.label]),
 ) as Record<string, string>;
 
-export function OnboardingModal({ open, onClose }: Props) {
+export function OnboardingModal({ open, onClose, referralSlug }: Props) {
   const titleId = useId();
   const [step, setStep] = useState<OnboardingModalStep>("gate");
   const [member, setMember] = useState<Member | null>(null);
@@ -158,6 +159,7 @@ export function OnboardingModal({ open, onClose }: Props) {
           screenshotFileName: screenshotFileName ?? undefined,
           followedX: commitment,
           joinedCommunity: commitment,
+          referredByInviteSlug: referralSlug ?? undefined,
         },
         origin,
       );
@@ -225,6 +227,12 @@ export function OnboardingModal({ open, onClose }: Props) {
                 <p className="mt-2 text-sm leading-relaxed text-zinc-400">
                   Follow and join so you&apos;re ready to grow with the community—nothing is blocked here.
                 </p>
+                {referralSlug && (
+                  <p className="mt-3 rounded-xl border border-brand-sky/20 bg-brand-sky/10 p-3 text-xs leading-relaxed text-brand-sky">
+                    Invite detected. Your signup will be recorded as referred by{" "}
+                    <span className="font-mono">{referralSlug}</span>.
+                  </p>
+                )}
               </div>
 
               <div className="flex flex-col gap-2.5">

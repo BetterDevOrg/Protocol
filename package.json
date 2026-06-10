@@ -9,7 +9,7 @@
     "lint": "next lint",
     "contracts:compile": "hardhat compile",
     "contracts:test": "hardhat test",
-    "contracts:deploy:sepolia": "hardhat run scripts/deploy-betterdev.ts --network arbitrumSepolia",
+    "contracts:deploy:sepolia": "hardhat run scripts/deploy-betterdev.js --network arbitrumSepolia",
     "contracts:export": "ts-node scripts/export-abis.ts"
   },
   "dependencies": {

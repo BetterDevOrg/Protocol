@@ -15,10 +15,13 @@ import { Suspense, useEffect, useState } from "react";
 
 function HomePageClientInner() {
   const [joinOpen, setJoinOpen] = useState(false);
+  const [referralSlug, setReferralSlug] = useState<string | null>(null);
   const searchParams = useSearchParams();
 
   useEffect(() => {
     if (searchParams.get("openJoin") === "1") {
+      const ref = searchParams.get("ref");
+      setReferralSlug(ref ? ref.replace(/[^a-zA-Z0-9]/g, "").slice(0, 32) : null);
       setJoinOpen(true);
       window.history.replaceState({}, "", "/");
     }
@@ -60,7 +63,7 @@ function HomePageClientInner() {
         <FinalCta onJoin={openJoin} />
       </div>
 
-      <OnboardingModal open={joinOpen} onClose={() => setJoinOpen(false)} />
+      <OnboardingModal open={joinOpen} onClose={() => setJoinOpen(false)} referralSlug={referralSlug} />
 
       <DesignBadge className="fixed bottom-6 right-5 z-50 hidden sm:flex lg:bottom-8 lg:right-8" />
     </div>

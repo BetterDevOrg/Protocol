@@ -24,4 +24,5 @@ export type RegistrationPayload = {
   screenshotFileName?: string | null;
   followedX?: boolean;
   joinedCommunity?: boolean;
+  referredByInviteSlug?: string;
 };

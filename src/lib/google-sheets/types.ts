@@ -4,6 +4,7 @@ export type GoogleSheetsMemberPayload = {
   memberDisplay: string;
   joinDate: string;
   inviteSlug: string;
+  referredByInviteSlug?: string;
   fullName: string;
   email: string;
   phoneE164: string;

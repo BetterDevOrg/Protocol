@@ -1,7 +1,9 @@
 import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomicfoundation/hardhat-ethers";
-import "dotenv/config";
+import dotenv from "dotenv";
 import type { HardhatUserConfig } from "hardhat/config";
+
+dotenv.config({ path: ".env.local" });
 
 const config: HardhatUserConfig = {
   solidity: {

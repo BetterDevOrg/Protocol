@@ -247,6 +247,7 @@ joined_community
 member_number
 community_id
 invite_slug
+referred_by_invite_slug
 source_ip
 user_agent
 ```

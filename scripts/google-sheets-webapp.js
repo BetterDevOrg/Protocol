@@ -7,7 +7,7 @@
  * Columns (row 1 headers):
  * created_at | full_name | email | phone_e164 | country | city | x_username |
  * x_profile_link | followed_x | joined_community | member_number | community_id |
- * invite_slug | source_ip | user_agent
+ * invite_slug | referred_by_invite_slug | source_ip | user_agent
  */
 const SHEET_NAME = "submissions";
 const API_TOKEN = "REPLACE_WITH_YOUR_SECRET";
@@ -26,8 +26,9 @@ const COL = {
   MEMBER_NUMBER: 10,
   COMMUNITY_ID: 11,
   INVITE_SLUG: 12,
-  SOURCE_IP: 13,
-  USER_AGENT: 14,
+  REFERRED_BY_INVITE_SLUG: 13,
+  SOURCE_IP: 14,
+  USER_AGENT: 15,
 };
 
 function jsonOutput(obj) {
@@ -64,6 +65,7 @@ function getSheet_() {
       "member_number",
       "community_id",
       "invite_slug",
+      "referred_by_invite_slug",
       "source_ip",
       "user_agent",
     ]);
@@ -102,6 +104,7 @@ function rowToMember_(row) {
     memberDisplay: pad4(parseInt(row[COL.MEMBER_NUMBER], 10)),
     joinDate: String(row[COL.CREATED_AT]),
     inviteSlug: String(row[COL.INVITE_SLUG]),
+    referredByInviteSlug: String(row[COL.REFERRED_BY_INVITE_SLUG] || ""),
     fullName: String(row[COL.FULL_NAME]),
     email: String(row[COL.EMAIL]),
     phoneE164: String(row[COL.PHONE]),
@@ -175,6 +178,7 @@ function doPost(e) {
       memberNumber,
       communityId,
       inviteSlug,
+      body.referredByInviteSlug || "",
       body.sourceIp || "",
       body.userAgent || "",
     ]);
@@ -187,6 +191,7 @@ function doPost(e) {
         memberDisplay: pad4(memberNumber),
         joinDate: createdAt,
         inviteSlug: inviteSlug,
+        referredByInviteSlug: body.referredByInviteSlug || "",
         fullName: body.fullName || "",
         email: email,
         phoneE164: body.phoneE164 || "",

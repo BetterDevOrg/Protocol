@@ -32,7 +32,7 @@ export function createBuilderCircles(
 
   for (let i = 0; i < shuffled.length; i += groupSize) {
     circles.push({
-      id: `Circle ${String.fromCharCode(65 + circles.length)}`,
+      id: `Group ${circles.length + 1}`,
       members: shuffled.slice(i, i + groupSize),
     });
   }

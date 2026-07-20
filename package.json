@@ -10,7 +10,8 @@
     "contracts:compile": "hardhat compile",
     "contracts:test": "hardhat test",
     "contracts:deploy:sepolia": "hardhat run scripts/deploy-betterdev.js --network arbitrumSepolia",
-    "contracts:export": "ts-node scripts/export-abis.ts"
+    "contracts:export": "ts-node scripts/export-abis.ts",
+    "event:setup": "hardhat run scripts/setup-event.js --network arbitrumSepolia"
   },
   "dependencies": {
     "@chainlink/contracts": "^1.5.0",
@@ -20,6 +21,7 @@
     "ethers": "^6.16.0",
     "libphonenumber-js": "^1.13.3",
     "next": "15.5.15",
+    "qrcode.react": "^4.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

@@ -15,6 +15,7 @@ export function googleSheetsMemberToMember(
     country: string;
     city: string;
     xUsername: string;
+    reputation?: number;
   },
   origin: string,
 ): Member {
@@ -22,7 +23,7 @@ export function googleSheetsMemberToMember(
     communityId: row.communityId,
     memberDisplay: row.memberDisplay,
     joinDate: row.joinDate,
-    reputation: 0,
+    reputation: row.reputation ?? 0,
     inviteLink: inviteUrl(origin, row.inviteSlug),
     fullName: row.fullName,
     email: row.email,

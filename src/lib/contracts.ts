@@ -1,5 +1,10 @@
 import { areBetterDevContractsConfigured, betterDevContractAddresses } from "@/contracts/config";
-import { BuilderCircleVRFAbi } from "@/contracts/abis";
+import {
+  BetterDevPassportAbi,
+  BuilderCircleVRFAbi,
+  MeetupRegistryAbi,
+  ReputationRegistryAbi,
+} from "@/contracts/abis";
 import { PASSPORT_NETWORK } from "@/lib/passport";
 import { BrowserProvider, Contract, id } from "ethers";
 
@@ -83,4 +88,69 @@ export async function getBuilderCircleVrfContract() {
   const provider = await getBrowserProvider();
   const signer = await provider.getSigner();
   return new Contract(address, BuilderCircleVRFAbi, signer);
+}
+
+export async function getPassportReadContract() {
+  const address = betterDevContractAddresses.passport;
+  if (!address) throw new Error("BetterDevPassport address is not configured.");
+  await ensureArbitrumSepolia();
+  const provider = await getBrowserProvider();
+  return new Contract(address, BetterDevPassportAbi, provider);
+}
+
+export async function getMeetupReadContract() {
+  const address = betterDevContractAddresses.meetupRegistry;
+  if (!address) throw new Error("MeetupRegistry address is not configured.");
+  await ensureArbitrumSepolia();
+  const provider = await getBrowserProvider();
+  return new Contract(address, MeetupRegistryAbi, provider);
+}
+
+export async function getReputationReadContract() {
+  const address = betterDevContractAddresses.reputationRegistry;
+  if (!address) throw new Error("ReputationRegistry address is not configured.");
+  await ensureArbitrumSepolia();
+  const provider = await getBrowserProvider();
+  return new Contract(address, ReputationRegistryAbi, provider);
+}
+
+export async function readMemberOnChainStatusFromBrowser(
+  communityId: string,
+  meetupSlug: string,
+  walletAddress?: string,
+) {
+  if (!areBetterDevContractsConfigured()) {
+    return {
+      passportMinted: false,
+      tokenId: 0,
+      memberIdOnWallet: "",
+      onChainReputation: 0,
+      hasAttended: false,
+    };
+  }
+
+  const passport = await getPassportReadContract();
+  const meetup = await getMeetupReadContract();
+  const reputation = await getReputationReadContract();
+  const meetupId = meetupIdToBytes32(meetupSlug);
+
+  const [tokenIdRaw, onChainReputation, hasAttended] = await Promise.all([
+    passport.tokenIdOfMember(communityId),
+    reputation.reputationOf(communityId),
+    meetup.hasAttended(meetupId, communityId),
+  ]);
+
+  const tokenId = Number(tokenIdRaw);
+  let memberIdOnWallet = "";
+  if (walletAddress) {
+    memberIdOnWallet = String(await passport.memberIdOf(walletAddress));
+  }
+
+  return {
+    passportMinted: tokenId > 0,
+    tokenId,
+    memberIdOnWallet,
+    onChainReputation: Number(onChainReputation),
+    hasAttended: Boolean(hasAttended),
+  };
 }

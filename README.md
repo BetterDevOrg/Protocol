@@ -250,6 +250,46 @@ invite_slug
 referred_by_invite_slug
 source_ip
 user_agent
+reputation
+```
+
+Check-ins sheet tab `checkins`:
+
+```text
+created_at
+meetup_id
+community_id
+email
+wallet
+attendance_tx
+reputation_awarded
+```
+
+Events sheet tab `events` (event name/city stored off-chain; on-chain keeps a short metadata URI):
+
+```text
+created_at
+slug
+name
+city
+metadata_uri
+tx_hash
+```
+
+## Event Runbook
+
+1. Set contract addresses and relayer env vars in `.env.local` / Vercel (see `.env.example`).
+2. Set `PASSPORT_METADATA_BASE_URL=https://betterdev.vercel.app` so local organizer creates write production metadata URIs on-chain.
+3. Redeploy `scripts/google-sheets-webapp.js` (includes `checkins` and `events` tab support).
+4. Create an event at `/organizer` (name, slug, city + `ORGANIZER_SESSION_SECRET`) — registers on-chain and saves details to the `events` sheet.
+5. Display the check-in QR at the venue (valid 4 hours; regenerate at `/organizer/checkin/[slug]` if needed).
+6. Attendees scan QR → `/checkin` → enter Community ID (member number) → on-chain `verifyAttendance` (+20 reputation).
+7. Attendees mint Passport on `/meetup` with wallet + email before or after check-in.
+
+Optional CLI for a fixed slug only:
+
+```bash
+npm run event:setup
 ```
 
 ## Supabase Schema
@@ -268,6 +308,9 @@ Supabase is optional while Google Sheets is used for launch-mode registration.
 - `/` - BetterDev landing page
 - `/join` - redirects into onboarding modal
 - `/meetup` - BetterDev Passport, reputation, and Builder Circles demo
+- `/checkin` - attendee meetup check-in (from organizer QR)
+- `/organizer` - create meetup event (on-chain + Google Sheets) and generate check-in QR
+- `/organizer/checkin/[meetupId]` - regenerate check-in QR for an existing slug
 - `/partnership` - partner onboarding page
 - `/careers` - contributor and role interest page
 - `/contact` - BetterDev contact page

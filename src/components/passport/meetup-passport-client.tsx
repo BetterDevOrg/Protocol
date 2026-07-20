@@ -21,7 +21,7 @@ import {
 } from "@/lib/passport";
 import { CHAIN_AGNOSTIC_STRATEGY, PROTOCOL_LAYERS, PROTOCOL_PRINCIPLE } from "@/lib/protocol";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 type WalletStatus = "idle" | "connecting" | "connected" | "unsupported";
 type PassportStep = "connect" | "passport" | "attendance";
@@ -142,6 +142,13 @@ export function MeetupPassportClient() {
   const [vrfTxHash, setVrfTxHash] = useState<string | null>(null);
   const [builderCircles, setBuilderCircles] = useState<BuilderCircle[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [memberEmail, setMemberEmail] = useState("");
+  const [communityId, setCommunityId] = useState("");
+  const [mintTxHash, setMintTxHash] = useState<string | null>(null);
+  const [passportTokenId, setPassportTokenId] = useState<number | null>(null);
+  const [mintSubmitting, setMintSubmitting] = useState(false);
+  const [onChainReputation, setOnChainReputation] = useState<number | null>(null);
+  const [statusLoading, setStatusLoading] = useState(false);
 
   const totalPreviewRep = useMemo(
     () =>
@@ -151,6 +158,49 @@ export function MeetupPassportClient() {
     [],
   );
   const contractStatus = getBetterDevContractStatus();
+
+  const refreshOnChainStatus = useCallback(async () => {
+    if (!memberEmail.includes("@")) return;
+    setStatusLoading(true);
+    try {
+      const params = new URLSearchParams({
+        email: memberEmail,
+        meetupId: DEMO_MEETUP.id,
+      });
+      if (walletAddress) params.set("wallet", walletAddress);
+      const res = await fetch(`/api/members/on-chain-status?${params.toString()}`);
+      const data = (await res.json()) as {
+        error?: string;
+        member?: { communityId: string };
+        onChain?: {
+          passportMinted: boolean;
+          tokenId: number;
+          onChainReputation: number;
+          hasAttended: boolean;
+        };
+      };
+      if (!res.ok) throw new Error(data.error ?? "Could not load status.");
+      if (data.member?.communityId) setCommunityId(data.member.communityId);
+      if (data.onChain) {
+        setOnChainReputation(data.onChain.onChainReputation);
+        setPassportMinted(data.onChain.passportMinted);
+        setPassportTokenId(data.onChain.tokenId || null);
+        setAttendanceVerified(data.onChain.hasAttended);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not load on-chain status.");
+    } finally {
+      setStatusLoading(false);
+    }
+  }, [memberEmail, walletAddress]);
+
+  useEffect(() => {
+    if (step === "attendance" && memberEmail.includes("@")) {
+      void refreshOnChainStatus();
+    }
+  }, [step, memberEmail, refreshOnChainStatus]);
+
+  const displayReputation = onChainReputation ?? totalPreviewRep;
 
   const connectWallet = async () => {
     setError(null);
@@ -192,13 +242,44 @@ export function MeetupPassportClient() {
     void connectWallet();
   };
 
-  const mintPassport = () => {
-    setPassportMinted(true);
-    setStep("attendance");
-  };
-
-  const verifyAttendance = () => {
-    setAttendanceVerified(true);
+  const mintPassport = async () => {
+    if (!contractStatus.configured) {
+      setPassportMinted(true);
+      setStep("attendance");
+      return;
+    }
+    if (!memberEmail.includes("@")) {
+      setError("Enter the email you used to register with BetterDev.");
+      return;
+    }
+    setError(null);
+    setMintSubmitting(true);
+    try {
+      const res = await fetch("/api/passport/mint", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: memberEmail, walletAddress }),
+      });
+      const data = (await res.json()) as {
+        error?: string;
+        ok?: boolean;
+        communityId?: string;
+        tokenId?: number;
+        mintTx?: string;
+        alreadyMinted?: boolean;
+      };
+      if (!res.ok) throw new Error(data.error ?? "Mint failed.");
+      setCommunityId(data.communityId ?? "");
+      setPassportTokenId(data.tokenId ?? null);
+      setMintTxHash(data.mintTx ?? null);
+      setPassportMinted(true);
+      setStep("attendance");
+      await refreshOnChainStatus();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not mint passport.");
+    } finally {
+      setMintSubmitting(false);
+    }
   };
 
   const generateFallbackBuilderCircles = () => {
@@ -387,21 +468,50 @@ export function MeetupPassportClient() {
                 <h2 className="text-2xl font-black tracking-tight">Mint BetterDev Passport</h2>
                 <p className="mt-3 max-w-lg text-sm leading-relaxed text-zinc-500">
                   Wallet connected: <span className="font-mono text-brand-sky">{shortAddress(walletAddress)}</span>.
-                  First-time attendees mint a BetterDev Passport tied to their universal Community ID.
+                  Mint your on-chain Passport NFT tied to your BetterDev Community ID.
                 </p>
+                <div className="mt-6 max-w-sm space-y-3">
+                  <div>
+                    <label htmlFor="passport-email" className="text-xs font-bold text-zinc-400">
+                      Registration email
+                    </label>
+                    <input
+                      id="passport-email"
+                      type="email"
+                      value={memberEmail}
+                      onChange={(e) => setMemberEmail(e.target.value)}
+                      className="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-sm text-white outline-none focus:border-brand-sky/40"
+                      placeholder="you@example.com"
+                    />
+                  </div>
+                </div>
                 <div className="mt-6 max-w-sm rounded-2xl border border-brand-sky/20 bg-brand-sky/10 p-4">
                   <Kicker>Credential Preview</Kicker>
-                  <p className="mt-3 font-mono text-3xl font-black">BD-000001</p>
+                  <p className="mt-3 font-mono text-3xl font-black">{communityId || "DEV-????"}</p>
                   <p className="mt-1 text-sm text-zinc-400">{UNIVERSAL_IDENTITY.productName}</p>
                   <p className="mt-1 text-xs text-zinc-500">Current deployment: {PASSPORT_NETWORK.name}</p>
+                  {passportTokenId && (
+                    <p className="mt-2 text-xs text-brand-sky">Token ID: {passportTokenId}</p>
+                  )}
                 </div>
                 <button
                   type="button"
-                  onClick={mintPassport}
-                  className="mt-6 rounded-xl bg-brand-sash-diag px-7 py-3 text-sm font-black text-white shadow-[0_0_36px_-14px_rgba(233,30,140,0.95)] transition hover:opacity-95"
+                  onClick={() => void mintPassport()}
+                  disabled={mintSubmitting}
+                  className="mt-6 rounded-xl bg-brand-sash-diag px-7 py-3 text-sm font-black text-white shadow-[0_0_36px_-14px_rgba(233,30,140,0.95)] transition hover:opacity-95 disabled:opacity-60"
                 >
-                  {passportMinted ? "Passport Minted" : "Mint Passport"}
+                  {mintSubmitting ? "Minting…" : passportMinted ? "Passport Minted" : "Mint Passport"}
                 </button>
+                {mintTxHash && (
+                  <a
+                    href={transactionExplorerUrl(mintTxHash)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-3 inline-flex text-xs font-bold text-brand-sky hover:text-white"
+                  >
+                    View mint transaction
+                  </a>
+                )}
               </>
             )}
 
@@ -409,21 +519,50 @@ export function MeetupPassportClient() {
               <>
                 <h2 className="text-2xl font-black tracking-tight">Verify meetup attendance</h2>
                 <p className="mt-3 max-w-lg text-sm leading-relaxed text-zinc-500">
-                  At the meetup, an organizer generates a QR code. Members scan it to create a verified attendance
-                  event that updates their BetterDev ID, not only the connected wallet.
+                  Scan the QR code at the event to check in. Your attendance is verified on-chain and adds +20
+                  reputation to your Community ID.
                 </p>
+                <Link
+                  href="/checkin"
+                  className="mt-6 inline-flex rounded-xl bg-brand-sash-diag px-7 py-3 text-sm font-black text-white shadow-[0_0_36px_-14px_rgba(233,30,140,0.95)] transition hover:opacity-95"
+                >
+                  Open check-in page
+                </Link>
+                {!memberEmail.includes("@") && (
+                  <div className="mt-4 max-w-sm">
+                    <label htmlFor="attendance-email" className="text-xs font-bold text-zinc-400">
+                      Email to refresh status
+                    </label>
+                    <input
+                      id="attendance-email"
+                      type="email"
+                      value={memberEmail}
+                      onChange={(e) => setMemberEmail(e.target.value)}
+                      className="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-sm text-white outline-none focus:border-brand-sky/40"
+                      placeholder="you@example.com"
+                    />
+                  </div>
+                )}
                 <button
                   type="button"
-                  onClick={verifyAttendance}
-                  className="mt-6 rounded-xl bg-brand-sash-diag px-7 py-3 text-sm font-black text-white shadow-[0_0_36px_-14px_rgba(233,30,140,0.95)] transition hover:opacity-95"
+                  onClick={() => void refreshOnChainStatus()}
+                  disabled={statusLoading || !memberEmail.includes("@")}
+                  className="mt-3 block rounded-xl border border-white/10 px-7 py-3 text-sm font-black text-white transition hover:bg-white/10 disabled:opacity-60"
                 >
-                  {attendanceVerified ? "Attendance Verified" : "Simulate QR Scan"}
+                  {statusLoading ? "Refreshing…" : "Refresh attendance status"}
                 </button>
                 {attendanceVerified && (
                   <p className="mt-5 max-w-lg rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm text-emerald-200">
-                    Attendance event recorded. First Meetup Stamp is now ready for the milestone pipeline.
+                    Attendance verified on-chain
+                    {onChainReputation !== null ? ` · ${onChainReputation} reputation` : ""}.
                   </p>
                 )}
+                <Link
+                  href="/organizer"
+                  className="mt-4 inline-flex text-xs font-bold text-zinc-500 hover:text-brand-sky"
+                >
+                  Organizer: create event & check-in QR
+                </Link>
               </>
             )}
           </div>
@@ -439,12 +578,16 @@ export function MeetupPassportClient() {
               This prevents NFT spam while keeping rewards scalable.
             </p>
             <div className="mt-8 rounded-2xl border border-white/10 bg-black p-6 text-white">
-              <Kicker tone="muted">Preview Reputation</Kicker>
+              <Kicker tone="muted">{onChainReputation !== null ? "Live Reputation" : "Preview Reputation"}</Kicker>
               <div className="mt-3 flex items-end gap-2">
-                <span className="text-6xl font-black tracking-[-0.08em]">{totalPreviewRep}</span>
+                <span className="text-6xl font-black tracking-[-0.08em]">{displayReputation}</span>
                 <span className="mb-2 text-sm font-bold uppercase text-zinc-500">Rep</span>
               </div>
-              <p className="mt-2 text-xs text-zinc-500">points from profile, attendance, recap, and referral events</p>
+              <p className="mt-2 text-xs text-zinc-500">
+                {onChainReputation !== null
+                  ? "On-chain score from Arbitrum Sepolia"
+                  : "points from profile, attendance, recap, and referral events"}
+              </p>
             </div>
             <div className="mt-7">
               <div className="flex items-center justify-between gap-4 text-sm">

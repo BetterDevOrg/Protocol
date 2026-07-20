@@ -98,7 +98,7 @@ export const CHAINLINK_VRF = {
 } as const;
 
 export const DEMO_MEETUP = {
-  id: "betterdev-lagos-001",
+  id: process.env.NEXT_PUBLIC_EVENT_MEETUP_ID || "betterdev-lagos-001",
   name: "BetterDev Lagos Builder Meetup #1",
   city: "Lagos",
   groupSize: CHAINLINK_VRF.groupSize,

@@ -1,0 +1,34 @@
+name: Good first issue
+description: Beginner-friendly contribution
+title: "[Good first issue]: "
+labels:
+  - good first issue
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for contributing to BetterDev! See [CONTRIBUTING.md](https://github.com/BetterDevOrg/protocol/blob/main/CONTRIBUTING.md).
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What should change?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Checklist of done conditions
+      value: |
+        - [ ] 
+        - [ ] 
+    validations:
+      required: true
+  - type: textarea
+    id: testing
+    attributes:
+      label: How to test
+      description: Steps for reviewers
+    validations:
+      required: true

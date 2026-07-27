@@ -131,6 +131,7 @@ docs/             Protocol and project documentation
 | Document | Description |
 |----------|-------------|
 | [Protocol Architecture](docs/protocol-architecture.md) | Identity model, on/off-chain boundary, roadmap |
+| [Internship Projects](docs/INTERNSHIP-PROJECTS.md) | Contributor tracks for interns and newcomers |
 | [Contributing](CONTRIBUTING.md) | How to contribute |
 | [Governance](GOVERNANCE.md) | Maintainers and decision-making |
 | [Code of Conduct](CODE_OF_CONDUCT.md) | Community standards |
@@ -150,7 +151,7 @@ docs/             Protocol and project documentation
 
 We welcome contributions. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and pull request guidelines.
 
-Look for issues labeled **`good first issue`** on [GitHub Issues](https://github.com/BetterDevOrg/protocol/issues).
+Look for issues labeled **`good first issue`** on [GitHub Issues](https://github.com/BetterDevOrg/protocol/issues). See [Internship Projects](docs/INTERNSHIP-PROJECTS.md) for structured tracks.
 
 ---
 

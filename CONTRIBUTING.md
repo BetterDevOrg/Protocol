@@ -21,6 +21,7 @@ This project follows our [Code of Conduct](CODE_OF_CONDUCT.md). By participating
 - Improve documentation
 - Fix bugs or add tests
 - Work on issues labeled **`good first issue`**
+- Explore [internship project tracks](docs/INTERNSHIP-PROJECTS.md)
 
 ## Development setup
 

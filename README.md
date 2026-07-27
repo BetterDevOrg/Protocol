@@ -30,6 +30,10 @@ Built with love ❤️ for engineers who prefer real connections over passive fe
   <a href="docs/protocol-architecture.md">
     <img src="https://img.shields.io/badge/Docs-Protocol_Architecture-181717?style=for-the-badge&logo=gitbook&logoColor=white" alt="Protocol documentation" />
   </a>
+  &nbsp;&nbsp;
+  <a href="https://github.com/BetterDevOrg/protocol">
+    <img src="https://img.shields.io/badge/GitHub-BetterDevOrg%2Fprotocol-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub repository" />
+  </a>
 </p>
 
 <p align="center">
@@ -84,8 +88,8 @@ Smart contracts: `BetterDevPassport`, `ReputationRegistry`, `MeetupRegistry`, `B
 For local development you need Node.js 20+ and a copy of the environment template.
 
 ```bash
-git clone https://github.com/YOUR_ORG/betterdev.git
-cd betterdev
+git clone https://github.com/BetterDevOrg/protocol.git
+cd protocol
 npm install
 cp .env.example .env.local
 # Fill in .env.local — never commit this file
@@ -140,7 +144,7 @@ Contributions welcome — documentation, tests, UI, and protocol improvements.
 3. Run `npm run build` before opening a PR.
 4. Never commit `.env.local`, credentials, or private keys.
 
-Look for issues labeled **`good first issue`** when available.
+Look for issues labeled **`good first issue`** on [GitHub Issues](https://github.com/BetterDevOrg/protocol/issues).
 
 ---
 
@@ -160,3 +164,5 @@ MIT — see [LICENSE](LICENSE) when present in the repository.
 
 - **Website:** [betterdev.live](https://betterdev.live)
 - **Member login:** [betterdev.live/login](https://betterdev.live/login)
+- **Repository:** [github.com/BetterDevOrg/protocol](https://github.com/BetterDevOrg/protocol)
+- **Issues:** [github.com/BetterDevOrg/protocol/issues](https://github.com/BetterDevOrg/protocol/issues)

@@ -131,18 +131,24 @@ docs/             Protocol and project documentation
 | Document | Description |
 |----------|-------------|
 | [Protocol Architecture](docs/protocol-architecture.md) | Identity model, on/off-chain boundary, roadmap |
+| [Contributing](CONTRIBUTING.md) | How to contribute |
+| [Governance](GOVERNANCE.md) | Maintainers and decision-making |
+| [Code of Conduct](CODE_OF_CONDUCT.md) | Community standards |
+| [Security](SECURITY.md) | Responsible disclosure |
 | [`.env.example`](.env.example) | Environment variable template (placeholders only) |
+
+## Maintainers
+
+| Maintainer | GitHub |
+|------------|--------|
+| Frankeze | [@FrankezeCode](https://github.com/FrankezeCode) |
+| Ruth | [@BetterRuth](https://github.com/BetterRuth) |
 
 ---
 
 ## Contributing
 
-Contributions welcome — documentation, tests, UI, and protocol improvements.
-
-1. Fork the repository and branch from `main`.
-2. Keep pull requests focused.
-3. Run `npm run build` before opening a PR.
-4. Never commit `.env.local`, credentials, or private keys.
+We welcome contributions. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and pull request guidelines.
 
 Look for issues labeled **`good first issue`** on [GitHub Issues](https://github.com/BetterDevOrg/protocol/issues).
 
@@ -150,13 +156,13 @@ Look for issues labeled **`good first issue`** on [GitHub Issues](https://github
 
 ## Security
 
-If you discover a security issue, **do not open a public GitHub issue**. Contact the maintainers directly with a responsible disclosure.
+If you discover a security issue, **do not open a public GitHub issue**. See [SECURITY.md](SECURITY.md) for responsible disclosure.
 
 ---
 
 ## License
 
-MIT — see [LICENSE](LICENSE) when present in the repository.
+[MIT](LICENSE) © BetterDev
 
 ---
 

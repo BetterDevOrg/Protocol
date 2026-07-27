@@ -7,8 +7,8 @@
 Built with love ❤️ for engineers who prefer real connections over passive feeds.
 
 <p align="center">
-  <a href="https://betterdev.live">
-    <strong>▶ OPEN BETTERDEV LIVE</strong>
+  <a href="https://youtu.be/J2hxoah5kTw?si=e_Js907PNw-wrJnQ">
+    <strong>▶ FOUNDER'S INTRO</strong>
     <br /><br />
     <img
       width="100%"
@@ -23,8 +23,8 @@ Built with love ❤️ for engineers who prefer real connections over passive fe
     <img src="https://img.shields.io/badge/Live_Project-betterdev.live-7c3aed?style=for-the-badge&logo=vercel&logoColor=white" alt="Live project" />
   </a>
   &nbsp;&nbsp;
-  <a href="https://betterdev.live/login">
-    <img src="https://img.shields.io/badge/Member_Login-Email_OTP-3b82f6?style=for-the-badge&logo=gmail&logoColor=white" alt="Member login" />
+   <a href="https://youtu.be/rL1mjW4Y0e8?si=7iXzbD_2HblrGHcd">
+    <img src="https://img.shields.io/badge/Walkthrough-Watch_Video-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="Walkthrough demo video" />
   </a>
   &nbsp;&nbsp;
   <a href="docs/protocol-architecture.md">

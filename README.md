@@ -13,7 +13,7 @@ Built with love ❤️ for engineers who prefer real connections over passive fe
     <img
       width="100%"
       alt="BetterDev landing page — Meet Engineers. Build Real Connections."
-      src="docs/assets/hero.png"
+      src="docs/assets/hero.jpg"
     />
   </a>
 </p>

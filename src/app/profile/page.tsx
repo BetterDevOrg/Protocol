@@ -1,15 +1,10 @@
 "use client";
 
+import { formatJoinDate } from "@/lib/format-date";
 import type { Member } from "@/types/member";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-
-function formatJoinDate(iso: string): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return iso;
-  return date.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
-}
 
 export default function ProfilePage() {
   const router = useRouter();

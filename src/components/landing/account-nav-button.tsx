@@ -18,9 +18,11 @@ type AccountNavButtonProps = {
 
 export function AccountNavButton({ variant }: AccountNavButtonProps) {
   const authenticated = useMemberAuth();
-  const href = authenticated ? "/profile" : "/login";
-  const label = authenticated ? "Profile" : "Log in";
-  const verticalLabel = authenticated ? "PROFILE" : "LOGIN";
+  const isAuthenticated = authenticated === true;
+
+  const href = isAuthenticated ? "/profile" : "/login";
+  const label = isAuthenticated ? "Profile" : "Log in";
+  const verticalLabel = isAuthenticated ? "PROFILE" : "LOGIN";
 
   if (variant === "sidebar") {
     return (

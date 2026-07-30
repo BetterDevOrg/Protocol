@@ -164,6 +164,12 @@ function CheckinForm() {
           >
             Open Passport
           </Link>
+          <Link
+            href="/profile"
+            className="text-sm font-bold text-brand-sky transition hover:text-white"
+          >
+            View profile
+          </Link>
         </div>
       </div>
     );

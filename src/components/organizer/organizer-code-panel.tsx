@@ -117,7 +117,7 @@ export function OrganizerCodePanel({
         <a
           href={data.links.contractUrl}
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
           className="mt-3 inline-block text-xs font-bold text-brand-sky hover:text-white"
         >
           View VRF contract →

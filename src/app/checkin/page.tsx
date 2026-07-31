@@ -152,7 +152,7 @@ function CheckinForm() {
             <a
               href={transactionExplorerUrl(success.attendanceTx)}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="text-sm font-bold text-brand-sky transition hover:text-white"
             >
               View on-chain proof

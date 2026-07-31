@@ -21,6 +21,7 @@ function LoginForm() {
   const [resending, setResending] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
+  const emailValid = email.includes("@");
 
   useEffect(() => {
     let cancelled = false;
@@ -64,6 +65,7 @@ function LoginForm() {
 
   const sendCode = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!emailValid) return;
     setError(null);
     setDevCode(null);
     setSubmitting(true);
@@ -155,7 +157,7 @@ function LoginForm() {
           )}
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || !emailValid}
             className="w-full rounded-xl bg-brand-sash-diag px-5 py-3 text-sm font-black text-white disabled:opacity-60"
           >
             {submitting ? "Sending…" : "Send login code"}

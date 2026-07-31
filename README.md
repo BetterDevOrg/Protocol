@@ -68,6 +68,17 @@ Full protocol design: [`docs/protocol-architecture.md`](docs/protocol-architectu
 2. **Reputation** — attendance, profile, referrals, publications
 3. **Coordination** — Builder Circles and meetup tooling
 
+### Member RSVP & Builder Circles
+
+1. RSVP from the meetup page at `/meetup/[slug]`.
+2. After the organizer runs matching, open `/meetup/[slug]/circles`.
+3. View your assigned Builder Circle and its members.
+
+Matching uses the RSVP, city, or hybrid participant pool selected by the
+organizer. QR check-in records attendance only; it does not determine matching
+eligibility. See [Builder Circles](docs/BUILDER-CIRCLES.md) for the complete
+organizer and member flow.
+
 ---
 
 ## Tech stack

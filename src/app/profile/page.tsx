@@ -136,15 +136,21 @@ export default function ProfilePage() {
               >
                 Open Passport
               </Link>
-              <button
-                type="button"
-                onClick={handleLogout}
-                disabled={loggingOut}
-                className="inline-flex flex-1 items-center justify-center rounded-xl border border-white/15 px-5 py-3 text-sm font-bold text-zinc-300 transition hover:border-white/30 hover:text-white disabled:opacity-60"
+              <Link
+                href="/organizer"
+                className="inline-flex flex-1 items-center justify-center rounded-xl border border-white/15 px-5 py-3 text-sm font-bold text-zinc-300 transition hover:border-white/30 hover:text-white"
               >
-                {loggingOut ? "Signing out…" : "Log out"}
-              </button>
+                Organizer dashboard
+              </Link>
             </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              disabled={loggingOut}
+              className="mt-3 w-full rounded-xl border border-white/10 px-5 py-3 text-sm font-bold text-zinc-500 transition hover:border-white/20 hover:text-zinc-300 disabled:opacity-60"
+            >
+              {loggingOut ? "Signing out…" : "Log out"}
+            </button>
           </div>
         </div>
 

@@ -1,30 +1,43 @@
 "use client";
 
-import { getPublicEventMeetupId } from "@/lib/event-config";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import {
+  readStoredOrganizerSecret,
+  writeStoredOrganizerSecret,
+} from "@/lib/organizer-secret-storage";
 
 export default function OrganizerCheckinPage() {
   const params = useParams();
-  const meetupId =
-    typeof params.meetupId === "string" ? params.meetupId : getPublicEventMeetupId();
+  const meetupId = typeof params.meetupId === "string" ? params.meetupId : "";
 
   const [secret, setSecret] = useState("");
   const [checkinUrl, setCheckinUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [ready, setReady] = useState(false);
 
-  const createSession = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    const stored = readStoredOrganizerSecret();
+    if (stored) setSecret(stored);
+    setReady(true);
+  }, []);
+
+  const createSession = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     setError(null);
     setLoading(true);
     try {
+      const trimmed = secret.trim();
+      if (!trimmed) throw new Error("Organizer key is required.");
+      writeStoredOrganizerSecret(trimmed);
+
       const res = await fetch("/api/meetups/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ secret, meetupId }),
+        body: JSON.stringify({ meetupId, secret: trimmed }),
       });
       const data = (await res.json()) as { error?: string; checkinUrl?: string };
       if (!res.ok) throw new Error(data.error ?? "Could not create session.");
@@ -36,18 +49,25 @@ export default function OrganizerCheckinPage() {
     }
   };
 
+  if (!ready) {
+    return (
+      <div className="min-h-dvh bg-black px-5 py-16 text-white">
+        <div className="mx-auto max-w-lg text-zinc-500">Loading…</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-dvh bg-black px-5 py-16 text-white">
       <div className="mx-auto max-w-lg">
-        <Link href="/organizer" className="text-xs font-bold text-brand-sky transition hover:text-white">
-          ← Back to Organizer
+        <Link href="/organizer/create" className="text-xs font-bold text-brand-sky transition hover:text-white">
+          ← Back to create page
         </Link>
         <p className="mt-6 text-[10px] font-black uppercase tracking-[0.28em] text-brand-sky">Organizer</p>
         <h1 className="mt-3 text-3xl font-black tracking-tight">Meetup check-in QR</h1>
         <p className="mt-3 text-sm leading-relaxed text-zinc-400">
           Generate a signed check-in link for{" "}
-          <span className="font-bold text-white">{meetupId}</span>. Attendees scan the QR to verify attendance
-          on-chain (+20 reputation).
+          <span className="font-bold text-white">{meetupId}</span>.
         </p>
 
         {!checkinUrl ? (
@@ -57,7 +77,7 @@ export default function OrganizerCheckinPage() {
           >
             <div>
               <label htmlFor="organizer-secret" className="text-xs font-bold text-zinc-400">
-                Organizer secret
+                Organizer key
               </label>
               <input
                 id="organizer-secret"
@@ -66,20 +86,19 @@ export default function OrganizerCheckinPage() {
                 autoComplete="off"
                 value={secret}
                 onChange={(e) => setSecret(e.target.value)}
-                className="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-sm text-white outline-none focus:border-brand-sky/40"
-                placeholder="ORGANIZER_SESSION_SECRET"
+                className="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 font-mono text-sm text-white outline-none focus:border-brand-sky/40"
+                placeholder="org_…"
               />
-              <p className="mt-2 text-[11px] text-zinc-600">Set in your server env as ORGANIZER_SESSION_SECRET.</p>
             </div>
-            {error && (
+            {error ? (
               <p className="rounded-xl border border-brand-pink/30 bg-brand-pink/10 p-3 text-sm text-brand-pink">
                 {error}
               </p>
-            )}
+            ) : null}
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-brand-sash-diag px-5 py-3 text-sm font-black text-white shadow-[0_0_36px_-14px_rgba(233,30,140,0.95)] transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full rounded-xl bg-brand-sash-diag px-5 py-3 text-sm font-black text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? "Creating…" : "Generate QR code"}
             </button>
@@ -93,10 +112,7 @@ export default function OrganizerCheckinPage() {
             </p>
             <button
               type="button"
-              onClick={() => {
-                setCheckinUrl(null);
-                setSecret("");
-              }}
+              onClick={() => setCheckinUrl(null)}
               className="mt-6 text-sm font-bold text-brand-purple transition hover:opacity-80"
             >
               Regenerate QR

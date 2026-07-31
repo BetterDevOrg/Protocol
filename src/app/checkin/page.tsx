@@ -159,6 +159,12 @@ function CheckinForm() {
             </a>
           )}
           <Link
+            href={`/meetup/${success.meetupId}/circles?communityId=${encodeURIComponent(success.communityId)}`}
+            className="inline-flex rounded-xl border border-white/15 px-5 py-3 text-sm font-bold text-zinc-300 transition hover:border-white/30 hover:text-white"
+          >
+            View Builder Circles
+          </Link>
+          <Link
             href="/meetup"
             className="inline-flex rounded-xl bg-brand-sash-diag px-5 py-3 text-sm font-black text-white"
           >

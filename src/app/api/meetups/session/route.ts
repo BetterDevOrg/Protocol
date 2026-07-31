@@ -1,13 +1,13 @@
 import { buildCheckinUrl, signCheckinToken } from "@/lib/checkin-token";
 import { getEventMeetupId } from "@/lib/event-config";
-import { verifyOrganizerSecret } from "@/lib/organizer-auth";
+import { resolveOrganizerAuth } from "@/lib/organizer-auth";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as { secret?: string; meetupId?: string };
-    const authError = verifyOrganizerSecret(body.secret);
-    if (authError) return authError;
+    const authResult = await resolveOrganizerAuth(body.secret);
+    if ("error" in authResult) return authResult.error;
 
     const meetupId = body.meetupId?.trim() || getEventMeetupId();
     const origin = new URL(request.url).origin;

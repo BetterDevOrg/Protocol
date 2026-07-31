@@ -87,4 +87,61 @@ describe("BetterDev Protocol", function () {
     expect(await meetup.hasAttended(meetupId, "BD-000001")).to.equal(true);
     expect(await reputation.reputationOf("BD-000001")).to.equal(20);
   });
+
+  it("records organizer reputation with dedupe by meetup", async function () {
+    const [owner] = await ethers.getSigners();
+    const OrganizerReputation = await ethers.getContractFactory("OrganizerReputationRegistry");
+    const organizerReputation = await OrganizerReputation.deploy(owner.address);
+    const meetupKey = ethers.id("betterdev-lagos-001");
+
+    await expect(
+      organizerReputation.recordEvent("ORG-0001", 1, 10, meetupKey, "ipfs://hosted-1"),
+    )
+      .to.emit(organizerReputation, "OrganizerReputationEventRecorded")
+      .withArgs(0, "ORG-0001", 1, 10, meetupKey, owner.address, "ipfs://hosted-1");
+
+    expect(await organizerReputation.reputationOf("ORG-0001")).to.equal(10);
+    expect(await organizerReputation.isRecorded("ORG-0001", 1, meetupKey)).to.equal(true);
+
+    await expect(
+      organizerReputation.recordEvent("ORG-0001", 1, 10, meetupKey, "ipfs://hosted-1"),
+    ).to.be.revertedWith("Already recorded");
+  });
+
+  it("issues organizer code randomness once per organizer key", async function () {
+    const [owner] = await ethers.getSigners();
+    const MockCoordinator = await ethers.getContractFactory("MockVRFCoordinatorV2Plus");
+    const coordinator = await MockCoordinator.deploy();
+    const OrganizerCodeVRF = await ethers.getContractFactory("OrganizerCodeVRF");
+    const organizerCodeVrf = await OrganizerCodeVRF.deploy(
+      await coordinator.getAddress(),
+      1n,
+      ethers.ZeroHash,
+      200000,
+      3,
+    );
+    const organizerKey = ethers.id("ORG-0001");
+
+    await expect(organizerCodeVrf.requestOrganizerCodeRandomness(organizerKey))
+      .to.emit(organizerCodeVrf, "OrganizerCodeRandomnessRequested");
+
+    await expect(organizerCodeVrf.requestOrganizerCodeRandomness(organizerKey)).to.be.revertedWith(
+      "Already requested",
+    );
+
+    const [seedBefore, fulfilledBefore] = await organizerCodeVrf.getOrganizerCodeSeed(organizerKey);
+    expect(fulfilledBefore).to.equal(false);
+    expect(seedBefore).to.equal(0n);
+
+    const [, requestId] = await organizerCodeVrf.organizerRandomness(organizerKey);
+    await coordinator.fulfillRandomWords(requestId, [42n]);
+
+    const [seedAfter, fulfilledAfter] = await organizerCodeVrf.getOrganizerCodeSeed(organizerKey);
+    expect(fulfilledAfter).to.equal(true);
+    expect(seedAfter).to.equal(42n);
+
+    await expect(organizerCodeVrf.requestOrganizerCodeRandomness(organizerKey)).to.be.revertedWith(
+      "Already fulfilled",
+    );
+  });
 });

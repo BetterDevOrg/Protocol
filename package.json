@@ -19,7 +19,9 @@
     "contracts:compile": "hardhat compile",
     "contracts:test": "hardhat test",
     "contracts:deploy:sepolia": "hardhat run scripts/deploy-betterdev.js --network arbitrumSepolia",
-    "contracts:export": "ts-node scripts/export-abis.ts",
+    "contracts:deploy:organizer-reputation": "hardhat run scripts/deploy-organizer-reputation.js --network arbitrumSepolia",
+    "contracts:deploy:organizer-code-vrf": "hardhat run scripts/deploy-organizer-code-vrf.js --network arbitrumSepolia",
+    "contracts:export": "node scripts/export-abis.mjs",
     "event:setup": "hardhat run scripts/setup-event.js --network arbitrumSepolia"
   },
   "dependencies": {

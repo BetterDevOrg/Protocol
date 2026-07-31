@@ -36,11 +36,32 @@ async function main() {
   );
   await builderCircleVrf.waitForDeployment();
 
+  const OrganizerReputation = await ethers.getContractFactory("OrganizerReputationRegistry");
+  const organizerReputation = await OrganizerReputation.deploy(owner);
+  await organizerReputation.waitForDeployment();
+
+  const relayerAddress = process.env.ORGANIZER_PRIVATE_KEY
+    ? new ethers.Wallet(process.env.ORGANIZER_PRIVATE_KEY).address
+    : owner;
+  await (await organizerReputation.setVerifier(relayerAddress, true)).wait();
+
+  const OrganizerCodeVRF = await ethers.getContractFactory("OrganizerCodeVRF");
+  const organizerCodeVrf = await OrganizerCodeVRF.deploy(
+    requiredEnv("VRF_COORDINATOR_ADDRESS"),
+    BigInt(requiredEnv("VRF_SUBSCRIPTION_ID")),
+    requiredEnv("VRF_KEY_HASH"),
+    Number(process.env.VRF_CALLBACK_GAS_LIMIT || 200000),
+    Number(process.env.VRF_REQUEST_CONFIRMATIONS || 3),
+  );
+  await organizerCodeVrf.waitForDeployment();
+
   const addresses = {
     BetterDevPassport: await passport.getAddress(),
     ReputationRegistry: await reputation.getAddress(),
     MeetupRegistry: await meetup.getAddress(),
     BuilderCircleVRF: await builderCircleVrf.getAddress(),
+    OrganizerReputationRegistry: await organizerReputation.getAddress(),
+    OrganizerCodeVRF: await organizerCodeVrf.getAddress(),
   };
 
   console.log("BetterDev protocol deployed:");

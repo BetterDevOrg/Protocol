@@ -1,13 +1,17 @@
 import { resolveAppOrigin } from "@/lib/app-origin";
 import { buildCheckinUrl, signCheckinToken } from "@/lib/checkin-token";
 import { isGoogleSheetsConfigured } from "@/lib/google-sheets/config";
-import { recordEventInGoogleSheets } from "@/lib/google-sheets/client";
+import {
+  recordEventInGoogleSheets,
+} from "@/lib/google-sheets/client";
 import {
   buildMeetupMetadataUri,
   normalizeMeetupSlug,
   validateMeetupSlug,
 } from "@/lib/meetup-slug";
-import { verifyOrganizerSecret } from "@/lib/organizer-auth";
+import { resolveOrganizerAuth, validateOrganizerEventCity } from "@/lib/organizer-auth";
+import { ORGANIZER_REP_EVENT_TYPES } from "@/lib/organizer-reputation";
+import { recordOrganizerReputationAction } from "@/lib/organizer-reputation-onchain";
 import { createMeetupIfNeeded } from "@/lib/relayer";
 import { NextResponse } from "next/server";
 
@@ -16,6 +20,7 @@ type CreateMeetupBody = {
   slug?: string;
   name?: string;
   city?: string;
+  country?: string;
 };
 
 function validateEventFields(name: string, city: string): string | null {
@@ -31,12 +36,16 @@ function validateEventFields(name: string, city: string): string | null {
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as CreateMeetupBody;
-    const authError = verifyOrganizerSecret(body.secret);
-    if (authError) return authError;
+    const authResult = await resolveOrganizerAuth(body.secret);
+    if ("error" in authResult) return authResult.error;
 
+    const { context } = authResult;
     const slug = normalizeMeetupSlug(body.slug ?? "");
     const name = body.name?.trim() ?? "";
     const city = body.city?.trim() ?? "";
+    const country =
+      body.country?.trim() ||
+      (context.mode === "city_organizer" ? context.organizer.country : "");
 
     const slugError = validateMeetupSlug(slug);
     if (slugError) {
@@ -48,10 +57,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: fieldError }, { status: 400 });
     }
 
+    const cityError = validateOrganizerEventCity(context, city, country);
+    if (cityError) return cityError;
+
     const requestOrigin = new URL(request.url).origin;
     const metadataOrigin = resolveAppOrigin(requestOrigin);
     const metadataURI = buildMeetupMetadataUri(metadataOrigin, slug);
     const { created, txHash } = await createMeetupIfNeeded(slug, metadataURI);
+
+    const organizerId =
+      context.mode === "city_organizer" ? context.organizer.organizerId : "";
 
     let storedOffChain = false;
     if (isGoogleSheetsConfigured()) {
@@ -61,6 +76,8 @@ export async function POST(request: Request) {
         city,
         metadataUri: metadataURI,
         txHash,
+        organizerId,
+        country,
       });
       if (!sheetResult.ok) {
         return NextResponse.json(
@@ -77,6 +94,16 @@ export async function POST(request: Request) {
         );
       }
       storedOffChain = true;
+
+      if (context.mode === "city_organizer" && created) {
+        await recordOrganizerReputationAction({
+          organizerId: context.organizer.organizerId,
+          eventType: ORGANIZER_REP_EVENT_TYPES.MEETUP_HOSTED,
+          meetupSlug: slug,
+          proofURI: metadataURI,
+          incrementEventsHosted: true,
+        });
+      }
     }
 
     const token = signCheckinToken(slug);
@@ -88,6 +115,8 @@ export async function POST(request: Request) {
       slug,
       name,
       city,
+      country,
+      organizerId: organizerId || undefined,
       created,
       txHash,
       metadataURI,

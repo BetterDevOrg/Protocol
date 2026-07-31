@@ -1,15 +1,20 @@
 import {
   BetterDevPassportAbi,
+  BuilderCircleVRFAbi,
   MeetupRegistryAbi,
+  OrganizerCodeVRFAbi,
   ReputationRegistryAbi,
 } from "@/contracts/abis";
 import { betterDevContractAddresses, areBetterDevContractsConfigured } from "@/contracts/config";
 import { meetupIdToBytes32 } from "@/lib/contracts";
+import { organizerIdToBytes32 } from "@/lib/organizer-code";
 import { Contract, JsonRpcProvider, Wallet } from "ethers";
 
 const MINT_GAS_LIMIT = 350_000;
 const VERIFY_GAS_LIMIT = 350_000;
 const CREATE_MEETUP_GAS_LIMIT = 350_000;
+const BUILDER_CIRCLE_VRF_GAS_LIMIT = 350_000;
+const ORGANIZER_CODE_VRF_GAS_LIMIT = 350_000;
 
 function requireRelayerConfig(): { rpcUrl: string; privateKey: string } {
   const rpcUrl = process.env.ARBITRUM_SEPOLIA_RPC_URL?.trim();
@@ -24,7 +29,7 @@ function requireRelayerConfig(): { rpcUrl: string; privateKey: string } {
   return { rpcUrl, privateKey };
 }
 
-function getRelayerSigner(): Wallet {
+export function getRelayerSigner(): Wallet {
   const { rpcUrl, privateKey } = requireRelayerConfig();
   return new Wallet(privateKey, new JsonRpcProvider(rpcUrl));
 }
@@ -74,6 +79,74 @@ export function getReadOnlyReputationContract() {
     ReputationRegistryAbi,
     getReadOnlyProvider(),
   );
+}
+
+export function getReadOnlyBuilderCircleVrfContract() {
+  return new Contract(
+    betterDevContractAddresses.builderCircleVrf,
+    BuilderCircleVRFAbi,
+    getReadOnlyProvider(),
+  );
+}
+
+export function getRelayerBuilderCircleVrfContract() {
+  const signer = getRelayerSigner();
+  return new Contract(betterDevContractAddresses.builderCircleVrf, BuilderCircleVRFAbi, signer);
+}
+
+export async function readMeetupVrfSeed(meetupSlug: string): Promise<{
+  seed: bigint;
+  fulfilled: boolean;
+}> {
+  const vrf = getReadOnlyBuilderCircleVrfContract();
+  const meetupId = meetupIdToBytes32(meetupSlug);
+  const [seed, fulfilled] = (await vrf.getMeetupSeed(meetupId)) as [bigint, boolean];
+  return { seed, fulfilled };
+}
+
+export async function requestMeetupVrfSeed(meetupSlug: string): Promise<{ requestTx: string }> {
+  const vrf = getRelayerBuilderCircleVrfContract();
+  const meetupId = meetupIdToBytes32(meetupSlug);
+  const tx = await vrf.requestBuilderCircleRandomness(meetupId, {
+    gasLimit: BUILDER_CIRCLE_VRF_GAS_LIMIT,
+  });
+  const receipt = await tx.wait();
+  if (!receipt) throw new Error("VRF request transaction failed.");
+  return { requestTx: receipt.hash };
+}
+
+export function getReadOnlyOrganizerCodeVrfContract() {
+  return new Contract(
+    betterDevContractAddresses.organizerCodeVrf,
+    OrganizerCodeVRFAbi,
+    getReadOnlyProvider(),
+  );
+}
+
+export function getRelayerOrganizerCodeVrfContract() {
+  const signer = getRelayerSigner();
+  return new Contract(betterDevContractAddresses.organizerCodeVrf, OrganizerCodeVRFAbi, signer);
+}
+
+export async function readOrganizerCodeVrfSeed(organizerId: string): Promise<{
+  seed: bigint;
+  fulfilled: boolean;
+}> {
+  const vrf = getReadOnlyOrganizerCodeVrfContract();
+  const organizerKey = organizerIdToBytes32(organizerId);
+  const [seed, fulfilled] = (await vrf.getOrganizerCodeSeed(organizerKey)) as [bigint, boolean];
+  return { seed, fulfilled };
+}
+
+export async function requestOrganizerCodeVrfSeed(organizerId: string): Promise<{ requestTx: string }> {
+  const vrf = getRelayerOrganizerCodeVrfContract();
+  const organizerKey = organizerIdToBytes32(organizerId);
+  const tx = await vrf.requestOrganizerCodeRandomness(organizerKey, {
+    gasLimit: ORGANIZER_CODE_VRF_GAS_LIMIT,
+  });
+  const receipt = await tx.wait();
+  if (!receipt) throw new Error("Organizer code VRF request failed.");
+  return { requestTx: receipt.hash };
 }
 
 export async function mintPassportForMember(

@@ -1,70 +1,85 @@
 "use client";
 
 import Link from "next/link";
-import { QRCodeSVG } from "qrcode.react";
-import { useMemo, useState } from "react";
-import { slugifyFromName } from "@/lib/meetup-slug";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import type { Member } from "@/types/member";
+import type { Organizer } from "@/types/organizer";
 
-type CreateMeetupResponse = {
-  error?: string;
-  meetupId?: string;
-  slug?: string;
-  name?: string;
-  city?: string;
-  created?: boolean;
-  txHash?: string;
-  metadataURI?: string;
-  checkinUrl?: string;
-};
+export default function OrganizerApplyPage() {
+  const router = useRouter();
+  const [member, setMember] = useState<Member | null>(null);
+  const [organizer, setOrganizer] = useState<Organizer | null>(null);
+  const [loading, setLoading] = useState(true);
 
-export default function OrganizerPage() {
-  const [secret, setSecret] = useState("");
-  const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
-  const [slugTouched, setSlugTouched] = useState(false);
-  const [city, setCity] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<CreateMeetupResponse | null>(null);
+  const [applyCity, setApplyCity] = useState("");
+  const [applyCountry, setApplyCountry] = useState("");
+  const [applyBio, setApplyBio] = useState("");
+  const [applyLoading, setApplyLoading] = useState(false);
+  const [applyError, setApplyError] = useState<string | null>(null);
+  const [applySuccess, setApplySuccess] = useState(false);
 
-  const suggestedSlug = useMemo(() => slugifyFromName(name), [name]);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const meRes = await fetch("/api/auth/me", { cache: "no-store" });
+      if (meRes.status === 401) {
+        router.replace("/login?next=/organizer");
+        return;
+      }
+      const meData = (await meRes.json()) as { member?: Member };
+      if (!meData.member) {
+        router.replace("/login?next=/organizer");
+        return;
+      }
+      if (cancelled) return;
+      setMember(meData.member);
+      setApplyCity(meData.member.city ?? "");
+      setApplyCountry(meData.member.country ?? "");
 
-  const handleNameChange = (value: string) => {
-    setName(value);
-    if (!slugTouched) {
-      setSlug(slugifyFromName(value));
-    }
-  };
+      const orgRes = await fetch("/api/organizers/me", { cache: "no-store" });
+      const orgData = (await orgRes.json()) as { organizer?: Organizer | null };
+      if (orgData.organizer) {
+        setOrganizer(orgData.organizer);
+      }
+      if (!cancelled) setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
 
-  const createEvent = async (e: React.FormEvent) => {
+  const handleApply = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setLoading(true);
+    setApplyError(null);
+    setApplyLoading(true);
     try {
-      const res = await fetch("/api/meetups/create", {
+      const res = await fetch("/api/organizers/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ secret, slug, name, city }),
+        body: JSON.stringify({ city: applyCity, country: applyCountry, bio: applyBio }),
       });
-      const data = (await res.json()) as CreateMeetupResponse;
-      if (!res.ok) throw new Error(data.error ?? "Could not create event.");
-      setResult(data);
+      const data = (await res.json()) as { organizer?: Organizer; error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Could not submit application.");
+      setOrganizer(data.organizer ?? null);
+      setApplySuccess(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not create event.");
+      setApplyError(err instanceof Error ? err.message : "Could not submit application.");
     } finally {
-      setLoading(false);
+      setApplyLoading(false);
     }
   };
 
-  const resetForm = () => {
-    setResult(null);
-    setSecret("");
-    setName("");
-    setSlug("");
-    setSlugTouched(false);
-    setCity("");
-    setError(null);
-  };
+  if (loading) {
+    return (
+      <div className="min-h-dvh bg-black px-5 py-16 text-white">
+        <div className="mx-auto max-w-lg text-zinc-500">Loading…</div>
+      </div>
+    );
+  }
+
+  const isPending = organizer?.status === "pending";
+  const isActive = organizer?.status === "active";
 
   return (
     <div className="min-h-dvh bg-black px-5 py-16 text-white">
@@ -72,145 +87,121 @@ export default function OrganizerPage() {
         <Link href="/meetup" className="text-xs font-bold text-brand-sky transition hover:text-white">
           ← Back to Passport
         </Link>
-        <p className="mt-6 text-[10px] font-black uppercase tracking-[0.28em] text-brand-sky">Organizer</p>
-        <h1 className="mt-3 text-3xl font-black tracking-tight">Create meetup event</h1>
+        <p className="mt-6 text-[10px] font-black uppercase tracking-[0.28em] text-brand-sky">
+          City organizer
+        </p>
+        <h1 className="mt-3 text-3xl font-black tracking-tight">Apply as city co-lead</h1>
         <p className="mt-3 text-sm leading-relaxed text-zinc-400">
-          Register a new event on-chain, then display the check-in QR at the venue. Attendees scan it to verify
-          attendance (+20 reputation).
+          Host BetterDev meetups in your city. Founders review every application and email approved
+          organizers a private key to create events.
         </p>
 
-        {!result?.checkinUrl ? (
+        {member ? (
+          <p className="mt-4 text-xs text-zinc-600">
+            Signed in as {member.email} · {member.communityId}
+          </p>
+        ) : null}
+
+        {isActive ? (
+          <div className="mt-8 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-6 text-sm text-emerald-100">
+            <p className="font-bold">You&apos;re an approved city organizer</p>
+            <p className="mt-2 text-emerald-100/90">
+              Check your email for your unique organizer key, then open the create page to host
+              meetups in {organizer?.city}.
+            </p>
+            <Link
+              href="/organizer/create"
+              className="mt-4 inline-flex rounded-xl bg-brand-sash-diag px-5 py-3 text-sm font-black text-white"
+            >
+              Open create event page →
+            </Link>
+          </div>
+        ) : null}
+
+        {isPending || applySuccess ? (
+          <div className="mt-8 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-6 text-sm text-amber-100">
+            <p className="font-bold">Application submitted</p>
+            <p className="mt-2 text-amber-100/90">
+              Your application for {organizer?.city}, {organizer?.country} is with the BetterDev
+              team. We&apos;ll email you after review and interview. If approved, you&apos;ll receive
+              your private organizer key and a link to create events.
+            </p>
+          </div>
+        ) : null}
+
+        {!organizer && member ? (
           <form
-            onSubmit={createEvent}
+            onSubmit={handleApply}
             className="mt-8 space-y-4 rounded-2xl border border-white/10 bg-white/[0.035] p-6"
           >
+            <h2 className="text-lg font-black">Application</h2>
+            <p className="text-sm text-zinc-400">
+              Tell us where you want to host. The founders team will be notified by email.
+            </p>
             <div>
-              <label htmlFor="organizer-secret" className="text-xs font-bold text-zinc-400">
-                Organizer secret
+              <label htmlFor="apply-city" className="text-xs font-bold text-zinc-400">
+                City you will host in
               </label>
               <input
-                id="organizer-secret"
-                type="password"
-                required
-                autoComplete="off"
-                value={secret}
-                onChange={(e) => setSecret(e.target.value)}
-                className="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-sm text-white outline-none focus:border-brand-sky/40"
-                placeholder="Your ORGANIZER_SESSION_SECRET value"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="event-name" className="text-xs font-bold text-zinc-400">
-                Event name
-              </label>
-              <input
-                id="event-name"
+                id="apply-city"
                 type="text"
                 required
-                value={name}
-                onChange={(e) => handleNameChange(e.target.value)}
+                value={applyCity}
+                onChange={(e) => setApplyCity(e.target.value)}
                 className="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-sm text-white outline-none focus:border-brand-sky/40"
-                placeholder="BetterDev Lagos Meetup"
               />
             </div>
-
             <div>
-              <label htmlFor="event-slug" className="text-xs font-bold text-zinc-400">
-                Event slug
+              <label htmlFor="apply-country" className="text-xs font-bold text-zinc-400">
+                Country
               </label>
               <input
-                id="event-slug"
+                id="apply-country"
                 type="text"
                 required
-                value={slug}
-                onChange={(e) => {
-                  setSlugTouched(true);
-                  setSlug(e.target.value.toLowerCase());
-                }}
+                value={applyCountry}
+                onChange={(e) => setApplyCountry(e.target.value)}
                 className="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-sm text-white outline-none focus:border-brand-sky/40"
-                placeholder={suggestedSlug || "betterdev-lagos-001"}
               />
-              <p className="mt-2 text-[11px] text-zinc-600">
-                Lowercase letters, numbers, and hyphens only. Used in check-in URLs and on-chain meetup ID.
-              </p>
             </div>
-
             <div>
-              <label htmlFor="event-city" className="text-xs font-bold text-zinc-400">
-                City
+              <label htmlFor="apply-bio" className="text-xs font-bold text-zinc-400">
+                Short bio (optional)
               </label>
-              <input
-                id="event-city"
-                type="text"
-                required
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
+              <textarea
+                id="apply-bio"
+                rows={3}
+                value={applyBio}
+                onChange={(e) => setApplyBio(e.target.value)}
                 className="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-sm text-white outline-none focus:border-brand-sky/40"
-                placeholder="Lagos"
+                placeholder="Why you want to host BetterDev in your city…"
               />
             </div>
-
-            {error && (
+            {applyError ? (
               <p className="rounded-xl border border-brand-pink/30 bg-brand-pink/10 p-3 text-sm text-brand-pink">
-                {error}
+                {applyError}
               </p>
-            )}
-
+            ) : null}
             <button
               type="submit"
-              disabled={loading}
-              className="w-full rounded-xl bg-brand-sash-diag px-5 py-3 text-sm font-black text-white shadow-[0_0_36px_-14px_rgba(233,30,140,0.95)] transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={applyLoading}
+              className="w-full rounded-xl bg-brand-sash-diag px-5 py-3 text-sm font-black text-white transition hover:opacity-95 disabled:opacity-60"
             >
-              {loading ? "Creating on-chain…" : "Create event & generate QR"}
+              {applyLoading ? "Submitting…" : "Submit application"}
             </button>
           </form>
-        ) : (
-          <div className="mt-8 space-y-6">
-            <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm text-emerald-200">
-              <p className="font-bold text-emerald-100">{result.name}</p>
-              <p className="mt-1 text-emerald-200/90">
-                {result.city} · slug <span className="font-mono">{result.slug}</span>
-              </p>
-              <p className="mt-2 text-xs text-emerald-200/80">
-                {result.created
-                  ? "Registered on-chain."
-                  : "Already registered on-chain — QR refreshed for this session."}
-                {result.txHash ? (
-                  <>
-                    {" "}
-                    Tx:{" "}
-                    <span className="break-all font-mono text-[11px]">{result.txHash}</span>
-                  </>
-                ) : null}
-              </p>
-            </div>
+        ) : null}
 
-            <div className="rounded-2xl border border-white/10 bg-white p-8 text-center text-black">
-              <QRCodeSVG value={result.checkinUrl} size={240} level="M" className="mx-auto" />
-              <p className="mt-6 break-all text-left text-xs text-zinc-600">{result.checkinUrl}</p>
-              <p className="mt-4 text-sm font-bold text-zinc-800">
-                Valid for 4 hours · display at venue entrance
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-4 text-sm font-bold">
-              <Link
-                href={`/organizer/checkin/${result.slug}`}
-                className="text-brand-sky transition hover:text-white"
-              >
-                Regenerate QR later →
-              </Link>
-              <button
-                type="button"
-                onClick={resetForm}
-                className="text-zinc-500 transition hover:text-white"
-              >
-                Create another event
-              </button>
-            </div>
-          </div>
-        )}
+        <p className="mt-10 text-center text-xs text-zinc-600">
+          Already approved?{" "}
+          <Link href="/organizer/create" className="font-bold text-brand-sky hover:text-white">
+            Create an event
+          </Link>
+          {" · "}
+          <Link href="/organizers" className="font-bold text-brand-sky hover:text-white">
+            Browse organizers
+          </Link>
+        </p>
       </div>
     </div>
   );

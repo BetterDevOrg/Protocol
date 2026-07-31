@@ -252,6 +252,11 @@ export default function LoginPage() {
         <Suspense fallback={<div className="text-zinc-500">Loading…</div>}>
           <LoginForm />
         </Suspense>
+        <p className="mt-6 text-center text-xs text-zinc-600">
+          <Link href="/" className="font-bold text-brand-sky hover:text-white">
+            Back to home
+          </Link>
+        </p>
       </div>
     </div>
   );

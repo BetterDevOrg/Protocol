@@ -18,6 +18,9 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [devCode, setDevCode] = useState<string | null>(null);
   const [checkingSession, setCheckingSession] = useState(true);
+  const [resending, setResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -38,27 +41,54 @@ function LoginForm() {
     };
   }, [router, nextPath]);
 
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCooldown((s) => (s > 0 ? s - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
+
+  const requestCode = async () => {
+    const res = await fetch("/api/auth/send-code", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    const data = (await res.json()) as { error?: string; devCode?: string };
+    if (!res.ok) {
+      throw new Error(data.error ?? "Could not send code.");
+    }
+    if (data.devCode) setDevCode(data.devCode);
+  };
+
   const sendCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setDevCode(null);
     setSubmitting(true);
     try {
-      const res = await fetch("/api/auth/send-code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      const data = (await res.json()) as { error?: string; devCode?: string };
-      if (!res.ok) {
-        throw new Error(data.error ?? "Could not send code.");
-      }
+      await requestCode();
       setStep("code");
-      if (data.devCode) setDevCode(data.devCode);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not send code.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const resendCode = async () => {
+    setError(null);
+    setResendMessage(null);
+    setResending(true);
+    try {
+      await requestCode();
+      setResendMessage("New code sent. Check your email.");
+      setResendCooldown(30);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not resend code.");
+    } finally {
+      setResending(false);
     }
   };
 
@@ -171,6 +201,23 @@ function LoginForm() {
           >
             {submitting ? "Verifying…" : "Log in"}
           </button>
+          {resendMessage && (
+            <p className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-sm text-emerald-200">
+              {resendMessage}
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={() => void resendCode()}
+            disabled={resending || resendCooldown > 0}
+            className="w-full text-sm font-bold text-brand-sky transition hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {resending
+              ? "Resending…"
+              : resendCooldown > 0
+                ? `Resend code (${resendCooldown}s)`
+                : "Resend code"}
+          </button>
           <button
             type="button"
             onClick={() => {
@@ -178,6 +225,8 @@ function LoginForm() {
               setCode("");
               setError(null);
               setDevCode(null);
+              setResendMessage(null);
+              setResendCooldown(0);
             }}
             className="w-full text-sm font-bold text-zinc-500 transition hover:text-white"
           >

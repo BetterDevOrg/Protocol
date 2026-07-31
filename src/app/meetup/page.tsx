@@ -27,6 +27,9 @@ export default function MeetupPage() {
             <Link href="/careers" className="transition hover:text-white">
               Careers
             </Link>
+            <Link href="/organizers" className="transition hover:text-white">
+              City Organizers
+            </Link>
             <a href="#documentation" className="transition hover:text-white">
               Docs
             </a>

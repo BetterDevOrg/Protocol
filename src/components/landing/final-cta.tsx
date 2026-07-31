@@ -75,7 +75,7 @@ export function FinalCta({ onJoin }: FinalCtaProps) {
             <p className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.35em] text-brand-purple">Community</p>
           </div>
           <nav className="flex flex-wrap items-center justify-center gap-8 text-sm font-medium text-[#6B7280]">
-            <a href={COMMUNITY_URLS.x} className="transition hover:text-zinc-900" target="_blank" rel="noreferrer">
+            <a href={COMMUNITY_URLS.x} className="transition hover:text-zinc-900" target="_blank" rel="noopener noreferrer">
               X
             </a>
             <Link href="/partnership" className="transition hover:text-zinc-900">

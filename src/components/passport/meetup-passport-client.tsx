@@ -506,7 +506,7 @@ export function MeetupPassportClient() {
                   <a
                     href={transactionExplorerUrl(mintTxHash)}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="mt-3 inline-flex text-xs font-bold text-brand-sky hover:text-white"
                   >
                     View mint transaction
@@ -763,7 +763,7 @@ export function MeetupPassportClient() {
                     <a
                       href={contractExplorerUrl(contractStatus.addresses.builderCircleVrf)}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       className="inline-flex font-bold text-brand-sky transition hover:text-white"
                     >
                       View on-chain proof
@@ -774,7 +774,7 @@ export function MeetupPassportClient() {
                   <a
                     href={transactionExplorerUrl(vrfTxHash)}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="inline-flex font-mono font-bold text-brand-sky transition hover:text-white"
                   >
                     Transaction {shortTxHash(vrfTxHash)}

@@ -58,7 +58,7 @@ export default function CareersPage() {
               <a
                 href={COMMUNITY_URLS.x}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="rounded-full border border-white/15 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/10"
               >
                 Message us on X

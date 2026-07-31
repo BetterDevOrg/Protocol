@@ -34,7 +34,7 @@ export default function ContactPage() {
             <a
               href={COMMUNITY_URLS.x}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="rounded-2xl border border-zinc-200 bg-white p-5 transition hover:border-brand-pink/50 hover:shadow-card"
             >
               <span className="text-xs font-bold uppercase tracking-[0.25em] text-brand-pink">X</span>

@@ -108,11 +108,11 @@ function BuilderCirclesView() {
 
       {!assigned ? (
         <div className="mt-8 rounded-2xl border border-white/10 bg-white/[0.035] p-6 text-sm text-zinc-400">
-          Groups have not been assigned for this meetup yet. RSVP before the event, then check back after
-          the organizer runs matching.
+          Builder Circles are assigned before the event. RSVP now to be included, then check back after the
+          organizer runs matching.
           <Link
             href={`/meetup/${meetupId}`}
-            className="mt-4 block font-bold text-brand-sky hover:text-white"
+            className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-brand-sash-diag px-5 py-3 font-black text-white transition hover:brightness-110 sm:w-auto"
           >
             RSVP for this meetup →
           </Link>

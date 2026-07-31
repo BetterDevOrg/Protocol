@@ -1,5 +1,6 @@
 "use client";
 
+import { Spinner } from "@/components/ui/spinner";
 import { formatJoinDate } from "@/lib/format-date";
 import type { Member } from "@/types/member";
 import Link from "next/link";
@@ -61,8 +62,11 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-dvh bg-black px-5 py-16 text-white">
-        <div className="mx-auto max-w-lg text-zinc-500">Loading profile…</div>
+      <div className="flex min-h-dvh items-center justify-center bg-black px-5 py-8 text-white">
+        <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-2xl border border-brand-sky/20 bg-brand-sky/10 px-8 py-12">
+          <Spinner size="lg" />
+          <p className="text-sm text-zinc-500">Loading profile…</p>
+        </div>
       </div>
     );
   }

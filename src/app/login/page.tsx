@@ -116,7 +116,10 @@ function LoginForm() {
             />
           </div>
           {error && (
-            <p className="rounded-xl border border-brand-pink/30 bg-brand-pink/10 p-3 text-sm text-brand-pink">
+            <p
+              role="alert"
+              className="rounded-xl border border-brand-pink/30 bg-brand-pink/10 p-3 text-sm text-brand-pink"
+            >
               {error}
             </p>
           )}
@@ -154,7 +157,10 @@ function LoginForm() {
             />
           </div>
           {error && (
-            <p className="rounded-xl border border-brand-pink/30 bg-brand-pink/10 p-3 text-sm text-brand-pink">
+            <p
+              role="alert"
+              className="rounded-xl border border-brand-pink/30 bg-brand-pink/10 p-3 text-sm text-brand-pink"
+            >
               {error}
             </p>
           )}

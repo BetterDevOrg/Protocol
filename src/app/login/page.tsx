@@ -22,6 +22,9 @@ function LoginForm() {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
 
+  // 1. ADDED: Email validation logic
+  const isEmailValid = email.trim() !== "" && email.includes("@");
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -64,6 +67,9 @@ function LoginForm() {
 
   const sendCode = async (e: React.FormEvent) => {
     e.preventDefault();
+    // 2. ADDED: Guard against keyboard form submit if email is invalid
+    if (!isEmailValid) return; 
+
     setError(null);
     setDevCode(null);
     setSubmitting(true);
@@ -144,6 +150,10 @@ function LoginForm() {
               className="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-sm text-white outline-none focus:border-brand-sky/40"
               placeholder="you@example.com"
             />
+            {/* 3. ADDED: Optional helper text when user has started typing but email is invalid */}
+            {!isEmailValid && email.length > 0 && (
+              <p className="mt-2 text-xs text-zinc-500">Enter a valid email containing @</p>
+            )}
           </div>
           {error && (
             <p
@@ -155,8 +165,9 @@ function LoginForm() {
           )}
           <button
             type="submit"
-            disabled={submitting}
-            className="w-full rounded-xl bg-brand-sash-diag px-5 py-3 text-sm font-black text-white disabled:opacity-60"
+            // 4. MODIFIED: Added !isEmailValid condition to disabled state
+            disabled={submitting || !isEmailValid}
+            className="w-full rounded-xl bg-brand-sash-diag px-5 py-3 text-sm font-black text-white disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {submitting ? "Sending…" : "Send login code"}
           </button>

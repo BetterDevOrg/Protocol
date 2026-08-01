@@ -13,6 +13,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -54,9 +55,11 @@ export default function ProfilePage() {
     try {
       await navigator.clipboard.writeText(member.inviteLink);
       setCopied(true);
+      setCopyError(false);
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
-      // ignore
+      setCopyError(true);
+      window.setTimeout(() => setCopyError(false), 2000);
     }
   };
 
@@ -127,10 +130,37 @@ export default function ProfilePage() {
               <button
                 type="button"
                 onClick={copyInviteLink}
-                className="mt-3 text-sm font-bold text-brand-sky transition hover:text-white"
+                className={`mt-3 inline-flex items-center gap-1.5 text-sm font-bold transition ${
+                  copied
+                    ? "text-emerald-400"
+                    : copyError
+                      ? "text-brand-pink"
+                      : "text-brand-sky hover:text-white"
+                }`}
               >
-                {copied ? "Copied" : "Copy invite link"}
+                {copied && (
+                  <svg
+                    className="size-4"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M4 10.5l4 4 8-9" />
+                  </svg>
+                )}
+                {copied ? "Copied!" : copyError ? "Couldn't copy - try again" : "Copy invite link"}
               </button>
+              <span role="status" aria-live="polite" className="sr-only">
+                {copied
+                  ? "Invite link copied to clipboard"
+                  : copyError
+                    ? "Could not copy invite link"
+                    : ""}
+              </span>
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row">

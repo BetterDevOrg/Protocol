@@ -160,8 +160,8 @@ export default function MeetupRsvpPage() {
             ) : null}
             {rsvped ? (
               <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm text-emerald-200">
-                <p className="font-bold text-emerald-100">You're RSVP'd</p>
-                <p className="mt-1">We'll email your Builder Circle when the organizer runs matching.</p>
+                <p className="font-bold text-emerald-100">You&apos;re RSVP&apos;d</p>
+                <p className="mt-1">We&apos;ll email your Builder Circle when the organizer runs matching.</p>
               </div>
             ) : (
               <button

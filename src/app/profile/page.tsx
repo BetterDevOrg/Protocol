@@ -128,12 +128,39 @@ export default function ProfilePage() {
               <p className="text-xs font-bold text-zinc-500">Invite link</p>
               <p className="mt-2 break-all font-mono text-xs text-zinc-300">{member.inviteLink}</p>
               <button
-                type="button"
-                onClick={copyInviteLink}
-                className="mt-3 text-sm font-bold text-brand-sky transition hover:text-white"
-              >
-                {copyError ? "Failed to copy" : copied ? "Copied" : "Copy invite link"}
-              </button>
+  type="button"
+  onClick={copyInviteLink}
+  className={`mt-3 inline-flex items-center gap-1.5 text-sm font-bold transition ${
+    copied
+      ? "text-emerald-400"
+      : copyError
+        ? "text-brand-pink"
+        : "text-brand-sky hover:text-white"
+  }`}
+>
+  {copied && (
+    <svg
+      className="size-4"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M4 10.5l4 4 8-9" />
+    </svg>
+  )}
+  {copied ? "Copied!" : copyError ? "Couldn't copy — try again" : "Copy invite link"}
+</button>
+<span role="status" aria-live="polite" className="sr-only">
+  {copied
+    ? "Invite link copied to clipboard"
+    : copyError
+      ? "Could not copy invite link"
+      : ""}
+</span>
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row">

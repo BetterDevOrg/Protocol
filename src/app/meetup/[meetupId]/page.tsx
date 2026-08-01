@@ -24,6 +24,8 @@ export default function MeetupRsvpPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [linkCopyError, setLinkCopyError] = useState(false);
 
   useEffect(() => {
     if (!meetupId) return;
@@ -84,6 +86,18 @@ export default function MeetupRsvpPage() {
     };
   }, [meetupId]);
 
+  const copyRsvpLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setLinkCopied(true);
+      setLinkCopyError(false);
+      window.setTimeout(() => setLinkCopied(false), 2000);
+    } catch {
+      setLinkCopyError(true);
+      window.setTimeout(() => setLinkCopyError(false), 2000);
+    }
+  };
+
   const submitRsvp = async () => {
     setError(null);
     setSuccess(null);
@@ -133,6 +147,41 @@ export default function MeetupRsvpPage() {
           </p>
         ) : null}
 
+        <button
+          type="button"
+          onClick={() => void copyRsvpLink()}
+          className={`mt-4 inline-flex items-center gap-1.5 text-xs font-bold transition ${
+            linkCopied
+              ? "text-emerald-400"
+              : linkCopyError
+                ? "text-brand-pink"
+                : "text-brand-sky hover:text-white"
+          }`}
+        >
+          {linkCopied && (
+            <svg
+              className="size-3.5"
+              viewBox="0 0 20 20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M4 10.5l4 4 8-9" />
+            </svg>
+          )}
+          {linkCopied ? "Copied!" : linkCopyError ? "Couldn&apos;t copy - try again" : "Copy RSVP link"}
+        </button>
+        <span role="status" aria-live="polite" className="sr-only">
+          {linkCopied
+            ? "RSVP link copied to clipboard"
+            : linkCopyError
+              ? "Could not copy RSVP link"
+              : ""}
+        </span>
+
         <p className="mt-6 text-sm text-zinc-400">
           RSVP before the event so the organizer can match you into a Builder Circle. Your group will be
           emailed once matching runs.
@@ -160,8 +209,8 @@ export default function MeetupRsvpPage() {
             ) : null}
             {rsvped ? (
               <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm text-emerald-200">
-                <p className="font-bold text-emerald-100">You're RSVP'd</p>
-                <p className="mt-1">We'll email your Builder Circle when the organizer runs matching.</p>
+                <p className="font-bold text-emerald-100">You&apos;re RSVP&apos;d</p>
+                <p className="mt-1">We&apos;ll email your Builder Circle when the organizer runs matching.</p>
               </div>
             ) : (
               <button

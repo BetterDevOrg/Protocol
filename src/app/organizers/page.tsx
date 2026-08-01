@@ -51,11 +51,29 @@ export default function OrganizersDirectoryPage() {
             {error}
           </p>
         ) : organizers.length === 0 ? (
-          <div className="mt-10 rounded-2xl border border-white/10 bg-white/[0.035] p-8 text-center">
-            <p className="text-zinc-400">No active city organizers yet.</p>
+          <div className="mt-10 flex flex-col items-center rounded-2xl border border-white/10 bg-white/[0.035] p-10 text-center">
+            <div className="flex size-12 items-center justify-center rounded-full border border-brand-sky/20 bg-brand-sky/10">
+              <svg
+                className="size-6 text-brand-sky"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 21s-7-5.686-7-11a7 7 0 1 1 14 0c0 5.314-7 11-7 11Z" />
+                <circle cx="12" cy="10" r="2.5" />
+              </svg>
+            </div>
+            <p className="mt-5 text-lg font-black text-white">No active city organizers yet</p>
+            <p className="mt-2 max-w-sm text-sm text-zinc-400">
+              Be the first to bring BetterDev to your city and help other developers connect locally.
+            </p>
             <Link
               href="/organizer"
-              className="mt-4 inline-block text-sm font-bold text-brand-sky transition hover:text-white"
+              className="mt-6 inline-flex items-center justify-center rounded-xl bg-brand-sash-diag px-6 py-3 text-sm font-black text-white transition hover:opacity-95"
             >
               Apply to become a city organizer →
             </Link>

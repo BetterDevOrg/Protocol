@@ -13,6 +13,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -49,16 +50,18 @@ export default function ProfilePage() {
     }
   };
 
-  const copyInviteLink = async () => {
-    if (!member?.inviteLink) return;
-    try {
-      await navigator.clipboard.writeText(member.inviteLink);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // ignore
-    }
-  };
+ const copyInviteLink = async () => {
+  if (!member?.inviteLink) return;
+  try {
+    await navigator.clipboard.writeText(member.inviteLink);
+    setCopied(true);
+    setCopyError(false);
+    window.setTimeout(() => setCopied(false), 2000);
+  } catch {
+    setCopyError(true);
+    window.setTimeout(() => setCopyError(false), 2000);
+  }
+};
 
   if (loading) {
     return (
@@ -129,7 +132,7 @@ export default function ProfilePage() {
                 onClick={copyInviteLink}
                 className="mt-3 text-sm font-bold text-brand-sky transition hover:text-white"
               >
-                {copied ? "Copied" : "Copy invite link"}
+                {copyError ? "Failed to copy" : copied ? "Copied" : "Copy invite link"}
               </button>
             </div>
 

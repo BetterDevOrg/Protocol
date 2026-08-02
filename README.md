@@ -37,7 +37,7 @@ Built with love ❤️ for engineers who prefer real connections over passive fe
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/network-Arbitrum_Sepolia-28A0F0?style=flat-square" alt="Arbitrum Sepolia" />
+  <img src="https://img.shields.io/badge/network-Arbitrum_Sepolia_%2F_Solana-28A0F0?style=flat-square" alt="Arbitrum Sepolia / Solana" />
   <img src="https://img.shields.io/badge/VRF-Chainlink-375BD2?style=flat-square&logo=chainlink&logoColor=white" alt="Chainlink VRF" />
   <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="MIT License" />
 </p>

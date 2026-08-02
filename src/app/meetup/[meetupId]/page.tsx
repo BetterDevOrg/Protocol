@@ -11,6 +11,35 @@ type MeetupEvent = {
   country?: string;
 };
 
+// --- NAYA COMPONENT: CopyLinkButton ---
+function CopyLinkButton() {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => {
+        setCopied(false);
+      }, 2000);
+    } catch (err) {
+      console.error("Failed to copy link: ", err);
+      alert("Failed to copy the link. Please copy the URL from your browser manually.");
+    }
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      type="button"
+      className="inline-flex rounded-xl border border-white/15 px-5 py-3 text-sm font-bold text-zinc-300 transition hover:border-white/30 hover:text-white"
+    >
+      {copied ? "Copied! ✓" : "Copy RSVP link"}
+    </button>
+  );
+}
+// --------------------------------------
+
 export default function MeetupRsvpPage() {
   const params = useParams();
   const meetupId = typeof params.meetupId === "string" ? params.meetupId : "";
@@ -137,6 +166,11 @@ export default function MeetupRsvpPage() {
           RSVP before the event so the organizer can match you into a Builder Circle. Your group will be
           emailed once matching runs.
         </p>
+
+        {/* COPY LINK BUTTON INTEGRATED HERE */}
+        <div className="mt-6">
+          <CopyLinkButton />
+        </div>
 
         {signedIn === false ? (
           <div className="mt-8 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-6 text-sm text-amber-100">

@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import {
   buildEligibilityStats,
   filterAttendeesByEventCity,
+  parseBuilderCirclePoolMode,
   runBuilderCircleMatching,
   selectParticipantPool,
   validateBuilderCircleEligibility,
@@ -111,5 +112,22 @@ describe("builder circle matching", () => {
     const cityMembers = attendees.slice(0, 2);
     const result = validateHybridPoolEligibility("hybrid", rsvps, cityMembers, "Lagos");
     assert.equal(result.ok, false);
+  });
+});
+
+describe("parseBuilderCirclePoolMode", () => {
+  it("returns supported pool modes", () => {
+    assert.equal(parseBuilderCirclePoolMode("rsvp"), "rsvp");
+    assert.equal(parseBuilderCirclePoolMode("city"), "city");
+    assert.equal(parseBuilderCirclePoolMode("hybrid"), "hybrid");
+  });
+
+  it("defaults invalid and missing values to hybrid", () => {
+    assert.equal(parseBuilderCirclePoolMode("invalid"), "hybrid");
+    assert.equal(parseBuilderCirclePoolMode(undefined), "hybrid");
+  });
+
+  it("normalizes mixed case", () => {
+    assert.equal(parseBuilderCirclePoolMode("RsVp"), "rsvp");
   });
 });

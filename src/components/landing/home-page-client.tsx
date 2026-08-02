@@ -69,7 +69,7 @@ function HomePageClientInner() {
 
       <OnboardingModal open={joinOpen} onClose={() => setJoinOpen(false)} referralSlug={referralSlug} />
 
-      <DesignBadge className="fixed bottom-6 right-5 z-50 hidden sm:flex lg:bottom-8 lg:right-8" />
+      <DesignBadge className="fixed bottom-4 right-4 z-50 flex sm:bottom-6 sm:right-5 lg:bottom-8 lg:right-8" />
     </div>
   );
 }

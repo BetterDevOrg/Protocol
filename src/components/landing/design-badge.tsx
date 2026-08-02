@@ -1,6 +1,6 @@
-/** Floating sponsor badge — single instance on the landing page. */
+/** Floating badge — Chainlink VRF attribution on the landing page. */
 
-function SuperteamMark({ className = "" }: { className?: string }) {
+function ChainlinkMark({ className = "" }: { className?: string }) {
   return (
     <svg
       className={className}
@@ -11,25 +11,12 @@ function SuperteamMark({ className = "" }: { className?: string }) {
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden
     >
-      <rect width="20" height="20" rx="5" fill="url(#superteam-badge-grad)" />
-      <text
-        x="10"
-        y="13.5"
-        textAnchor="middle"
+      <path d="M10 2L16.5 6v8L10 18 3.5 14V6L10 2z" fill="#375BD2" />
+      <path
+        d="M10 5.5L13.5 8v4L10 14.5 6.5 12V8L10 5.5z"
         fill="white"
-        fontSize="8"
-        fontWeight="600"
-        fontFamily="system-ui, -apple-system, Segoe UI, sans-serif"
-      >
-        ST
-      </text>
-      <defs>
-        <linearGradient id="superteam-badge-grad" x1="0" y1="20" x2="20" y2="0" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#00B4D8" />
-          <stop offset="0.55" stopColor="#E91E8C" />
-          <stop offset="1" stopColor="#6B21A8" />
-        </linearGradient>
-      </defs>
+        fillOpacity="0.9"
+      />
     </svg>
   );
 }
@@ -39,12 +26,12 @@ export function DesignBadge({ className = "" }: { className?: string }) {
     <div
       className={`pointer-events-none flex items-center gap-2 rounded-lg bg-zinc-950/95 px-2.5 py-2 shadow-lg ring-1 ring-white/10 ${className}`}
       role="note"
-      aria-label="Proudly Superteam sponsors"
+      aria-label="Powered by Chainlink VRF"
     >
-      <SuperteamMark className="size-5 shrink-0" />
+      <ChainlinkMark className="size-5 shrink-0" />
       <p className="whitespace-nowrap text-[10px] font-normal leading-normal tracking-normal text-zinc-400">
-        Proudly{" "}
-        <span className="font-medium tracking-wide text-white">Superteam</span> sponsors
+        Powered by{" "}
+        <span className="font-medium tracking-wide text-white">Chainlink VRF</span>
       </p>
     </div>
   );

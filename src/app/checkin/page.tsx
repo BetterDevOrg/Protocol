@@ -62,8 +62,9 @@ function CheckinForm() {
       return;
     }
 
-    const communityId = formatCommunityIdFromNumber(memberNumber);
     setSubmitting(true);
+    
+    const communityId = formatCommunityIdFromNumber(memberNumber);
     try {
       const res = await fetch("/api/meetups/checkin", {
         method: "POST",
@@ -94,6 +95,7 @@ function CheckinForm() {
       setSubmitting(false);
     }
   };
+  
 
   if (success) {
     return (
@@ -170,11 +172,12 @@ function CheckinForm() {
           >
             Open Passport
           </Link>
+          {/* UPDATED CODE FOR ISSUE #37 BELOW */}
           <Link
             href="/profile"
             className="text-sm font-bold text-brand-sky transition hover:text-white"
           >
-            View profile
+            View your profile &rarr;
           </Link>
         </div>
       </div>

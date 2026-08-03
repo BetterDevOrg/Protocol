@@ -63,6 +63,14 @@ export default function CareersPage() {
               >
                 Message us on X
               </a>
+              <a
+                href="https://github.com/BetterDevOrg/protocol/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full border border-white/15 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                Browse good first issues →
+              </a>
             </div>
           </div>
         </div>

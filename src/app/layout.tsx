@@ -36,6 +36,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${geistMono.variable}`}>
+      <head>
+        <meta
+          name="impact-site-verification"
+          value="4614aca4-91c9-4706-91b0-12dc29b5a89a"
+        />
+      </head>
       <body className={`${inter.className} font-sans antialiased`}>{children}</body>
     </html>
   );

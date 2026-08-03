@@ -1,25 +1,14 @@
-import Image from "next/image";
-
-const avatars = [
-  { img: "https://i.pravatar.cc/96?img=5", large: false },
-  { img: "https://i.pravatar.cc/96?img=9", large: false },
-  { img: "https://i.pravatar.cc/96?img=16", large: false },
-  { img: "https://i.pravatar.cc/96?img=47", large: true },
-  { img: "https://i.pravatar.cc/96?img=33", large: false },
-  { img: "https://i.pravatar.cc/96?img=12", large: false },
-  { img: "https://i.pravatar.cc/96?img=60", large: false },
-];
+import { ContributorCarousel } from "@/components/landing/contributor-carousel";
 
 export function SocialProof() {
   return (
     <section id="network" className="scroll-mt-6 relative bg-black py-20 sm:py-28">
       <div className="relative z-[1] mx-auto max-w-[900px] px-5 text-center sm:px-8">
         <h2 className="text-3xl font-bold tracking-tight text-white sm:text-[2.125rem] sm:leading-tight">
-          Join early members across cities
+          Built by early contributors
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-[#9CA3AF]">
-          The betterdev network is growing. Engineers from top tech hubs are already claiming their IDs and organizing
-          local walks.
+          Engineers shaping BetterDev across cities — open source, meetups, and on-chain coordination.
         </p>
 
         <div className="mx-auto mt-12 flex max-w-3xl flex-wrap justify-center gap-4 sm:gap-5">
@@ -37,25 +26,8 @@ export function SocialProof() {
           </div>
         </div>
 
-        <div className="mt-14 flex items-center justify-center pl-2">
-          <div className="flex items-center -space-x-3 sm:-space-x-4">
-            {avatars.map((a, i) => (
-              <div key={i} className={`relative ${a.large ? "z-20" : "z-10 opacity-[0.72]"}`}>
-                <Image
-                  src={a.img}
-                  alt=""
-                  width={a.large ? 72 : 52}
-                  height={a.large ? 72 : 52}
-                  className={`rounded-full object-cover ring-2 ring-black ${
-                    a.large ? "size-[72px] ring-2 ring-white" : "size-12 sm:size-[52px]"
-                  }`}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
+        <ContributorCarousel />
       </div>
-
     </section>
   );
 }

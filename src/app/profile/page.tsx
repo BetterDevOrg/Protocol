@@ -14,6 +14,8 @@ export default function ProfilePage() {
   const [loggingOut, setLoggingOut] = useState(false);
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState(false);
+  const [idCopied, setIdCopied] = useState(false);
+  const [idCopyError, setIdCopyError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -63,6 +65,19 @@ export default function ProfilePage() {
     }
   };
 
+  const copyCommunityId = async () => {
+    if (!member?.communityId) return;
+    try {
+      await navigator.clipboard.writeText(member.communityId);
+      setIdCopied(true);
+      setIdCopyError(false);
+      window.setTimeout(() => setIdCopied(false), 2000);
+    } catch {
+      setIdCopyError(true);
+      window.setTimeout(() => setIdCopyError(false), 2000);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-black px-5 py-8 text-white">
@@ -89,8 +104,59 @@ export default function ProfilePage() {
           <div className="mt-6 space-y-3 rounded-xl border border-white/10 bg-black/30 p-5 text-sm">
             <div className="flex justify-between gap-4">
               <span className="text-zinc-500">Community ID</span>
-              <span className="font-mono font-bold text-brand-sky">{member.communityId}</span>
+              <span className="flex items-center gap-2">
+                <span className="font-mono font-bold text-brand-sky">{member.communityId}</span>
+                <button
+                  type="button"
+                  onClick={copyCommunityId}
+                  aria-label="Copy Community ID"
+                  title="Copy Community ID"
+                  className={`inline-flex items-center transition ${
+                    idCopied
+                      ? "text-emerald-400"
+                      : idCopyError
+                        ? "text-brand-pink"
+                        : "text-brand-sky hover:text-white"
+                  }`}
+                >
+                  {idCopied ? (
+                    <svg
+                      className="size-4"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M4 10.5l4 4 8-9" />
+                    </svg>
+                  ) : (
+                    <svg
+                      className="size-4"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <rect x="7" y="7" width="9" height="9" rx="1.5" />
+                      <path d="M13 7V5.5A1.5 1.5 0 0 0 11.5 4H5.5A1.5 1.5 0 0 0 4 5.5v6A1.5 1.5 0 0 0 5.5 13H7" />
+                    </svg>
+                  )}
+                </button>
+              </span>
             </div>
+            <span role="status" aria-live="polite" className="sr-only">
+              {idCopied
+                ? "Community ID copied to clipboard"
+                : idCopyError
+                  ? "Could not copy Community ID"
+                  : ""}
+            </span>
             <div className="flex justify-between gap-4">
               <span className="text-zinc-500">Member #</span>
               <span className="font-mono font-bold text-white">{member.memberDisplay}</span>

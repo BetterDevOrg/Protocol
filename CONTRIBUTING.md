@@ -109,6 +109,31 @@ If someone else is already assigned or has an open PR for an issue, please do no
 - Prefer minimal, focused diffs over large refactors.
 - Do not add `NEXT_PUBLIC_` prefixes to secrets or private keys.
 
+## Adding early contributors to the landing carousel
+
+Early contributors shown on the landing page carousel are defined in `src/lib/early-contributors.ts`.
+
+### How to add a contributor
+
+1. Open `src/lib/early-contributors.ts`.
+2. Add a new entry to the `EARLY_CONTRIBUTORS` array. Each entry has two fields:
+   - `name` — the display name shown on the carousel card
+   - `github` — the contributor's GitHub username (without the `@`)
+
+   ```ts
+   export const EARLY_CONTRIBUTORS: EarlyContributor[] = [
+     // ...existing entries...
+     { name: "Jane Doe", github: "janedoe" },
+   ];
+   ```
+
+3. That's it — **no image upload is needed**. Avatars load automatically from GitHub's CDN via the `githubAvatarUrl()` helper, which builds an `https://avatars.githubusercontent.com/<username>` URL from the `github` field.
+
+### Notes
+
+- `avatars.githubusercontent.com` must stay allowed in the image configuration in `next.config.mjs`. Do not remove it, or carousel avatars will stop loading.
+- The new avatar appears on the carousel after the change is deployed.
+
 ## Security
 
 If you discover a security vulnerability, **do not** open a public issue. Contact the maintainers directly for responsible disclosure.

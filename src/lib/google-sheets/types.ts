@@ -52,6 +52,8 @@ export type GoogleSheetsEventRecord = {
   txHash: string;
   organizerId?: string;
   country?: string;
+  /** Optional ISO date for meetup passport label (falls back to createdAt) */
+  eventDate?: string;
 };
 
 export type GoogleSheetsEventGetResponse =

@@ -1,5 +1,6 @@
 "use client";
 
+import { MeetupPassportMintPanel } from "@/components/passport/meetup-passport-mint-panel";
 import {
   COMMUNITY_ID_PREFIX,
   formatCommunityIdFromNumber,
@@ -18,13 +19,18 @@ type CheckinSuccess = {
   fullName: string;
   city: string;
   country: string;
+  joinDate: string;
+  joinedLabel: string;
   meetupId: string;
   meetupName: string;
   meetupCity?: string;
+  eventLabel: string;
   reputation: number;
   pointsAwarded: number;
   attendanceTx: string;
   alreadyCheckedIn: boolean;
+  meetupPassportMinted: boolean;
+  meetupPassportTokenId: number;
 };
 
 function CheckinForm() {
@@ -81,13 +87,18 @@ function CheckinForm() {
         fullName: data.fullName,
         city: data.city,
         country: data.country,
+        joinDate: data.joinDate ?? "",
+        joinedLabel: data.joinedLabel ?? "",
         meetupId: data.meetupId,
         meetupName: data.meetupName,
         meetupCity: data.meetupCity,
+        eventLabel: data.eventLabel ?? data.meetupName.toLowerCase(),
         reputation: data.reputation,
         pointsAwarded: data.pointsAwarded,
         attendanceTx: data.attendanceTx,
         alreadyCheckedIn: Boolean(data.alreadyCheckedIn),
+        meetupPassportMinted: Boolean(data.meetupPassportMinted),
+        meetupPassportTokenId: data.meetupPassportTokenId ?? 0,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Check-in failed.");
@@ -160,6 +171,21 @@ function CheckinForm() {
               View on-chain proof
             </a>
           )}
+
+          <MeetupPassportMintPanel
+            state={{
+              communityId: success.communityId,
+              meetupId: success.meetupId,
+              fullName: success.fullName,
+              city: success.city,
+              joinedLabel: success.joinedLabel,
+              eventLabel: success.eventLabel,
+              reputation: success.reputation,
+              meetupPassportMinted: success.meetupPassportMinted,
+              meetupPassportTokenId: success.meetupPassportTokenId,
+            }}
+          />
+
           <Link
             href={`/meetup/${success.meetupId}/circles?communityId=${encodeURIComponent(success.communityId)}`}
             className="inline-flex rounded-xl border border-white/15 px-5 py-3 text-sm font-bold text-zinc-300 transition hover:border-white/30 hover:text-white"

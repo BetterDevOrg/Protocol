@@ -1,14 +1,13 @@
 import { normalizeCommunityId, validateCommunityId } from "@/lib/community-id";
 import { verifyCheckinToken } from "@/lib/checkin-token";
 import { getEventMeetupId } from "@/lib/event-config";
-import { isGoogleSheetsConfigured } from "@/lib/google-sheets/config";
+import { formatMemberJoinedLabel, resolveMeetupPassportContext } from "@/lib/meetup-passport";
 import {
   getCheckinStatusFromGoogleSheets,
-  getEventFromGoogleSheets,
   recordCheckinInGoogleSheets,
 } from "@/lib/google-sheets/client";
 import { lookupMemberByCommunityId } from "@/lib/member-lookup";
-import { readMemberOnChainStatus, verifyAttendanceForMember } from "@/lib/relayer";
+import { readMemberOnChainStatus, readMeetupPassportStatus, verifyAttendanceForMember } from "@/lib/relayer";
 import type { Member } from "@/types/member";
 import { NextResponse } from "next/server";
 
@@ -17,16 +16,18 @@ const ATTENDANCE_POINTS = 20;
 type MeetupDisplay = {
   name: string;
   city?: string;
+  eventLabel: string;
+  joinedLabel: string;
 };
 
-async function resolveMeetupDisplay(meetupId: string): Promise<MeetupDisplay> {
-  if (isGoogleSheetsConfigured()) {
-    const eventResult = await getEventFromGoogleSheets(meetupId);
-    if (eventResult.ok) {
-      return { name: eventResult.event.name, city: eventResult.event.city };
-    }
-  }
-  return { name: meetupId.replace(/-/g, " ") };
+async function resolveMeetupDisplay(meetupId: string, member?: Member): Promise<MeetupDisplay> {
+  const context = await resolveMeetupPassportContext(meetupId);
+  return {
+    name: context.meetupName,
+    city: context.meetupCity,
+    eventLabel: context.eventLabel,
+    joinedLabel: formatMemberJoinedLabel(member?.joinDate),
+  };
 }
 
 function buildCheckinPayload(
@@ -36,6 +37,8 @@ function buildCheckinPayload(
   reputation: number,
   attendanceTx: string,
   alreadyCheckedIn: boolean,
+  meetupPassportMinted: boolean,
+  meetupPassportTokenId: number,
 ) {
   return {
     ok: true as const,
@@ -45,12 +48,17 @@ function buildCheckinPayload(
     fullName: member.fullName ?? "",
     city: member.city ?? "",
     country: member.country ?? "",
+    joinDate: member.joinDate ?? "",
+    joinedLabel: meetup.joinedLabel,
     meetupId,
     meetupName: meetup.name,
     meetupCity: meetup.city,
+    eventLabel: meetup.eventLabel,
     reputation,
     pointsAwarded: ATTENDANCE_POINTS,
     attendanceTx,
+    meetupPassportMinted,
+    meetupPassportTokenId,
   };
 }
 
@@ -103,11 +111,14 @@ export async function POST(request: Request) {
       );
     }
 
-    const meetup = await resolveMeetupDisplay(meetupId);
+    const meetup = await resolveMeetupDisplay(meetupId, member);
 
     const sheetStatus = await getCheckinStatusFromGoogleSheets(meetupId, { communityId });
     if (sheetStatus.ok && sheetStatus.checkedIn && sheetStatus.attendanceTx) {
-      const chainStatus = await readMemberOnChainStatus(member.communityId, meetupId);
+      const [chainStatus, meetupPassport] = await Promise.all([
+        readMemberOnChainStatus(member.communityId, meetupId),
+        readMeetupPassportStatus(member.communityId, meetupId),
+      ]);
       const reputation =
         chainStatus.onChainReputation || sheetStatus.reputationAwarded || ATTENDANCE_POINTS;
       await syncCheckinToSheets({
@@ -119,12 +130,22 @@ export async function POST(request: Request) {
         totalReputation: reputation,
       });
       return NextResponse.json(
-        buildCheckinPayload(member, meetupId, meetup, reputation, sheetStatus.attendanceTx, true),
+        buildCheckinPayload(
+          member,
+          meetupId,
+          meetup,
+          reputation,
+          sheetStatus.attendanceTx,
+          true,
+          meetupPassport.minted,
+          meetupPassport.tokenId,
+        ),
       );
     }
 
     const chainStatus = await readMemberOnChainStatus(member.communityId, meetupId);
     if (chainStatus.hasAttended) {
+      const meetupPassport = await readMeetupPassportStatus(member.communityId, meetupId);
       const reputation = chainStatus.onChainReputation || ATTENDANCE_POINTS;
       await syncCheckinToSheets({
         meetupId,
@@ -136,7 +157,16 @@ export async function POST(request: Request) {
       });
 
       return NextResponse.json(
-        buildCheckinPayload(member, meetupId, meetup, reputation, "on-chain-existing", true),
+        buildCheckinPayload(
+          member,
+          meetupId,
+          meetup,
+          reputation,
+          "on-chain-existing",
+          true,
+          meetupPassport.minted,
+          meetupPassport.tokenId,
+        ),
       );
     }
 
@@ -149,7 +179,10 @@ export async function POST(request: Request) {
     } catch (e) {
       const message = e instanceof Error ? e.message : "";
       if (message.toLowerCase().includes("already attended")) {
-        const refreshed = await readMemberOnChainStatus(member.communityId, meetupId);
+        const [refreshed, meetupPassport] = await Promise.all([
+          readMemberOnChainStatus(member.communityId, meetupId),
+          readMeetupPassportStatus(member.communityId, meetupId),
+        ]);
         const reputation = refreshed.onChainReputation || ATTENDANCE_POINTS;
         await syncCheckinToSheets({
           meetupId,
@@ -160,13 +193,25 @@ export async function POST(request: Request) {
           totalReputation: reputation,
         });
         return NextResponse.json(
-          buildCheckinPayload(member, meetupId, meetup, reputation, "on-chain-existing", true),
+          buildCheckinPayload(
+            member,
+            meetupId,
+            meetup,
+            reputation,
+            "on-chain-existing",
+            true,
+            meetupPassport.minted,
+            meetupPassport.tokenId,
+          ),
         );
       }
       throw e;
     }
 
-    const updated = await readMemberOnChainStatus(member.communityId, meetupId);
+    const [updated, meetupPassport] = await Promise.all([
+      readMemberOnChainStatus(member.communityId, meetupId),
+      readMeetupPassportStatus(member.communityId, meetupId),
+    ]);
     const reputation = updated.onChainReputation || ATTENDANCE_POINTS;
 
     await syncCheckinToSheets({
@@ -179,7 +224,16 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(
-      buildCheckinPayload(member, meetupId, meetup, reputation, attendanceTx, false),
+      buildCheckinPayload(
+        member,
+        meetupId,
+        meetup,
+        reputation,
+        attendanceTx,
+        false,
+        meetupPassport.minted,
+        meetupPassport.tokenId,
+      ),
     );
   } catch (e) {
     console.error("[meetups/checkin]", e);

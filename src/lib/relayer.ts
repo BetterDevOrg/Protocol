@@ -1,11 +1,12 @@
 import {
   BetterDevPassportAbi,
   BuilderCircleVRFAbi,
+  MeetupPassportAbi,
   MeetupRegistryAbi,
   OrganizerCodeVRFAbi,
   ReputationRegistryAbi,
 } from "@/contracts/abis";
-import { betterDevContractAddresses, areBetterDevContractsConfigured } from "@/contracts/config";
+import { betterDevContractAddresses, areBetterDevContractsConfigured, isMeetupPassportConfigured } from "@/contracts/config";
 import { meetupIdToBytes32 } from "@/lib/contracts";
 import { organizerIdToBytes32 } from "@/lib/organizer-code";
 import { Contract, JsonRpcProvider, Wallet } from "ethers";
@@ -37,6 +38,19 @@ export function getRelayerSigner(): Wallet {
 export function getRelayerPassportContract() {
   const signer = getRelayerSigner();
   return new Contract(betterDevContractAddresses.passport, BetterDevPassportAbi, signer);
+}
+
+export function getRelayerMeetupPassportContract() {
+  const signer = getRelayerSigner();
+  return new Contract(betterDevContractAddresses.meetupPassport, MeetupPassportAbi, signer);
+}
+
+export function getReadOnlyMeetupPassportContract() {
+  return new Contract(
+    betterDevContractAddresses.meetupPassport,
+    MeetupPassportAbi,
+    getReadOnlyProvider(),
+  );
 }
 
 export function getRelayerMeetupContract() {
@@ -163,6 +177,40 @@ export async function mintPassportForMember(
 
   const tokenId = Number(await passport.tokenIdOfMember(communityId));
   return { mintTx: receipt.hash, tokenId };
+}
+
+export async function mintMeetupPassportForMember(
+  walletAddress: string,
+  communityId: string,
+  meetupSlug: string,
+  metadataURI: string,
+): Promise<{ mintTx: string; tokenId: number }> {
+  if (!isMeetupPassportConfigured()) {
+    throw new Error("Meetup passport contract is not configured.");
+  }
+  const meetupPassport = getRelayerMeetupPassportContract();
+  const meetupId = meetupIdToBytes32(meetupSlug);
+  const tx = await meetupPassport.mintMeetupPassport(walletAddress, communityId, meetupId, metadataURI, {
+    gasLimit: MINT_GAS_LIMIT,
+  });
+  const receipt = await tx.wait();
+  if (!receipt) throw new Error("Meetup passport mint transaction failed.");
+
+  const tokenId = Number(await meetupPassport.tokenIdOf(meetupId, communityId));
+  return { mintTx: receipt.hash, tokenId };
+}
+
+export async function readMeetupPassportStatus(
+  communityId: string,
+  meetupSlug: string,
+): Promise<{ minted: boolean; tokenId: number }> {
+  if (!isMeetupPassportConfigured()) {
+    return { minted: false, tokenId: 0 };
+  }
+  const meetupPassport = getReadOnlyMeetupPassportContract();
+  const meetupId = meetupIdToBytes32(meetupSlug);
+  const tokenId = Number(await meetupPassport.tokenIdOf(meetupId, communityId));
+  return { minted: tokenId > 0, tokenId };
 }
 
 export async function verifyAttendanceForMember(

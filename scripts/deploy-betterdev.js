@@ -16,6 +16,10 @@ async function main() {
   const passport = await Passport.deploy(owner);
   await passport.waitForDeployment();
 
+  const MeetupPassport = await ethers.getContractFactory("MeetupPassport");
+  const meetupPassport = await MeetupPassport.deploy(owner);
+  await meetupPassport.waitForDeployment();
+
   const Reputation = await ethers.getContractFactory("ReputationRegistry");
   const reputation = await Reputation.deploy(owner);
   await reputation.waitForDeployment();
@@ -57,6 +61,7 @@ async function main() {
 
   const addresses = {
     BetterDevPassport: await passport.getAddress(),
+    MeetupPassport: await meetupPassport.getAddress(),
     ReputationRegistry: await reputation.getAddress(),
     MeetupRegistry: await meetup.getAddress(),
     BuilderCircleVRF: await builderCircleVrf.getAddress(),

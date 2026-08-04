@@ -88,6 +88,30 @@ describe("BetterDev Protocol", function () {
     expect(await reputation.reputationOf("BD-000001")).to.equal(20);
   });
 
+  it("mints a meetup passport stamp once per member and meetup", async function () {
+    const { owner, member, meetup } = await deployProtocol();
+    const meetupId = ethers.id("betterdev-lagos-001");
+
+    const MeetupPassport = await ethers.getContractFactory("MeetupPassport");
+    const meetupPassport = await MeetupPassport.deploy(owner.address);
+
+    await meetup.createMeetup(meetupId, "ipfs://meetup-1");
+    await meetup.verifyAttendance(meetupId, "BD-000001", "ipfs://attendance-1");
+
+    await expect(
+      meetupPassport.mintMeetupPassport(member.address, "BD-000001", meetupId, "ipfs://meetup-passport-1"),
+    )
+      .to.emit(meetupPassport, "MeetupPassportMinted")
+      .withArgs(member.address, "BD-000001", meetupId, 1, "ipfs://meetup-passport-1");
+
+    expect(await meetupPassport.tokenIdOf(meetupId, "BD-000001")).to.equal(1);
+    expect(await meetupPassport.tokenURI(1)).to.equal("ipfs://meetup-passport-1");
+
+    await expect(
+      meetupPassport.mintMeetupPassport(member.address, "BD-000001", meetupId, "ipfs://meetup-passport-2"),
+    ).to.be.revertedWith("Already minted");
+  });
+
   it("records organizer reputation with dedupe by meetup", async function () {
     const [owner] = await ethers.getSigners();
     const OrganizerReputation = await ethers.getContractFactory("OrganizerReputationRegistry");

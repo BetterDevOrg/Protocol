@@ -3,6 +3,7 @@ import path from "node:path";
 
 const contracts = [
   "BetterDevPassport",
+  "MeetupPassport",
   "ReputationRegistry",
   "MeetupRegistry",
   "BuilderCircleVRF",
@@ -35,6 +36,7 @@ const abiExports = contracts
 
 const config = `export const betterDevContractAddresses = {
   passport: process.env.NEXT_PUBLIC_BETTERDEV_PASSPORT_ADDRESS || "",
+  meetupPassport: process.env.NEXT_PUBLIC_MEETUP_PASSPORT_ADDRESS || "",
   reputationRegistry: process.env.NEXT_PUBLIC_REPUTATION_REGISTRY_ADDRESS || "",
   meetupRegistry: process.env.NEXT_PUBLIC_MEETUP_REGISTRY_ADDRESS || "",
   builderCircleVrf: process.env.NEXT_PUBLIC_BUILDER_CIRCLE_VRF_ADDRESS || "",
@@ -49,6 +51,10 @@ export function areBetterDevContractsConfigured(): boolean {
     Boolean(betterDevContractAddresses.meetupRegistry) &&
     Boolean(betterDevContractAddresses.builderCircleVrf)
   );
+}
+
+export function isMeetupPassportConfigured(): boolean {
+  return Boolean(betterDevContractAddresses.meetupPassport);
 }
 
 export function isOrganizerReputationOnChainConfigured(): boolean {

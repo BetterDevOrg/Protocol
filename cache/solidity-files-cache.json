@@ -1065,8 +1065,8 @@
       ]
     },
     "C:\\Dev\\betterdev\\contracts\\OrganizerReputationRegistry.sol": {
-      "lastModificationDate": 1785264359279,
-      "contentHash": "2892d1f0174b0e38660d89582a4429ed",
+      "lastModificationDate": 1785457229504,
+      "contentHash": "570f236cc7fcabc71a88776eeecb2e41",
       "sourceName": "contracts/OrganizerReputationRegistry.sol",
       "solcConfig": {
         "version": "0.8.26",
@@ -1103,8 +1103,8 @@
       ]
     },
     "C:\\Dev\\betterdev\\contracts\\OrganizerCodeVRF.sol": {
-      "lastModificationDate": 1785265060553,
-      "contentHash": "9d93f7396d0e40c789235f381d185ce4",
+      "lastModificationDate": 1785457229221,
+      "contentHash": "870c252b76e7c99604b1750d4ebc5923",
       "sourceName": "contracts/OrganizerCodeVRF.sol",
       "solcConfig": {
         "version": "0.8.26",
@@ -1142,8 +1142,8 @@
       ]
     },
     "C:\\Dev\\betterdev\\contracts\\test\\MockVRFCoordinatorV2Plus.sol": {
-      "lastModificationDate": 1785265417326,
-      "contentHash": "fb799fb5247278ceaf2fa81bb40843df",
+      "lastModificationDate": 1785457229504,
+      "contentHash": "9259e47317432f2ca3d7bc8cef31b021",
       "sourceName": "contracts/test/MockVRFCoordinatorV2Plus.sol",
       "solcConfig": {
         "version": "0.8.26",
@@ -1178,6 +1178,45 @@
       "artifacts": [
         "IVRFConsumerV2PlusMock",
         "MockVRFCoordinatorV2Plus"
+      ]
+    },
+    "C:\\Dev\\betterdev\\contracts\\MeetupPassport.sol": {
+      "lastModificationDate": 1785804777920,
+      "contentHash": "929b22a940f31d871a7b20336ef197a3",
+      "sourceName": "contracts/MeetupPassport.sol",
+      "solcConfig": {
+        "version": "0.8.26",
+        "settings": {
+          "evmVersion": "cancun",
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC721/ERC721.sol",
+        "@openzeppelin/contracts/access/Ownable.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.26"
+      ],
+      "artifacts": [
+        "MeetupPassport"
       ]
     }
   }

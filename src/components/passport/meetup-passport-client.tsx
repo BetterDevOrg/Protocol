@@ -14,12 +14,14 @@ import {
   DEMO_ATTENDEES,
   DEMO_MEETUP,
   MILESTONE_BADGES,
-  PASSPORT_NETWORK,
   REPUTATION_ACTIONS,
-  UNIVERSAL_IDENTITY,
   type BuilderCircle,
 } from "@/lib/passport";
-import { CHAIN_AGNOSTIC_STRATEGY, PROTOCOL_LAYERS, PROTOCOL_PRINCIPLE } from "@/lib/protocol";
+import { PROTOCOL_LAYERS, PROTOCOL_PRINCIPLE } from "@/lib/protocol";
+import type { StoredBuilderCircle } from "@/lib/builder-circle-config";
+import { MeetupHubCard } from "@/components/passport/meetup-hub-card";
+import { PassportIdCard } from "@/components/passport/passport-id-card";
+import { formatJoinMonthYear } from "@/lib/format-date";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -92,6 +94,31 @@ function shortTxHash(hash: string) {
   return `${hash.slice(0, 8)}…${hash.slice(-6)}`;
 }
 
+function demoPassportStorageKey(address: string) {
+  return `betterdev-passport-demo:${address.toLowerCase()}`;
+}
+
+function readDemoPassport(address: string): { communityId: string; tokenId: number } | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(demoPassportStorageKey(address));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { communityId?: string; tokenId?: number };
+    if (!parsed.communityId) return null;
+    return { communityId: parsed.communityId, tokenId: parsed.tokenId ?? 1 };
+  } catch {
+    return null;
+  }
+}
+
+function writeDemoPassport(address: string, communityId: string, tokenId: number) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(
+    demoPassportStorageKey(address),
+    JSON.stringify({ communityId, tokenId }),
+  );
+}
+
 function Kicker({ children, tone = "sky" }: { children: string; tone?: "sky" | "pink" | "muted" }) {
   const color = tone === "pink" ? "text-brand-pink" : tone === "muted" ? "text-zinc-600" : "text-brand-sky";
   return <p className={`text-[10px] font-black uppercase tracking-[0.32em] ${color}`}>{children}</p>;
@@ -132,6 +159,84 @@ function AbstractCube() {
   );
 }
 
+function reputationProgressPercent(reputation: number): number {
+  const thresholds = MILESTONE_BADGES.map((badge) => badge.threshold)
+    .filter((threshold) => threshold > 0)
+    .sort((a, b) => a - b);
+  const next = thresholds.find((threshold) => threshold > reputation) ?? thresholds.at(-1) ?? 100;
+  return Math.min(100, Math.round((reputation / next) * 100));
+}
+
+function PipelineProgressBar({ reputation }: { reputation: number }) {
+  const percent = reputationProgressPercent(reputation);
+  return (
+    <div className="mt-4 h-1 rounded-full bg-white/10">
+      <div
+        className="h-full rounded-full bg-brand-sky shadow-[0_0_20px_rgba(56,189,248,0.55)] transition-all duration-700"
+        style={{ width: `${percent}%` }}
+      />
+    </div>
+  );
+}
+
+function ReputationPipelineCard({
+  previewReputation,
+  walletConnected,
+  walletAddress,
+  onMint,
+}: {
+  previewReputation: number;
+  walletConnected: boolean;
+  walletAddress: string;
+  onMint: () => void;
+}) {
+  return (
+    <div className="rounded-[2rem] border border-white/10 bg-[#17171b] p-7 text-white shadow-[0_24px_80px_-42px_rgba(14,165,233,0.28)] sm:p-9">
+      <Kicker tone="pink">Reputation Pipeline</Kicker>
+      <h2 className="mt-4 text-3xl font-black leading-tight tracking-[-0.04em] text-zinc-400">
+        Actions become events. Milestones become NFTs.
+      </h2>
+      <p className="mt-5 text-sm leading-relaxed text-zinc-500">
+        This prevents NFT spam while keeping rewards scalable.
+      </p>
+      <div className="mt-8 rounded-2xl border border-white/10 bg-black p-6 text-white">
+        <Kicker tone="muted">Preview Reputation</Kicker>
+        <div className="mt-3 flex items-end gap-2">
+          <span className="text-6xl font-black tracking-[-0.08em]">{previewReputation}</span>
+          <span className="mb-2 text-sm font-bold uppercase text-zinc-500">Rep</span>
+        </div>
+        <p className="mt-2 text-xs text-zinc-500">
+          Points from profile, attendance, recap, and referral events
+        </p>
+      </div>
+      <div className="mt-7">
+        <div className="flex items-center justify-between gap-4 text-sm">
+          <span className="text-zinc-400">Pipeline Status</span>
+          <span className="font-black uppercase text-brand-sky">
+            {walletConnected && walletAddress
+              ? `Connected // ${shortAddress(walletAddress)}`
+              : "Preview // Awaiting wallet"}
+          </span>
+        </div>
+        <PipelineProgressBar reputation={previewReputation} />
+      </div>
+      {walletConnected ? (
+        <button
+          type="button"
+          onClick={onMint}
+          className="mt-6 w-full rounded-xl border border-brand-sky/30 bg-brand-sky/10 px-5 py-3 text-sm font-black text-brand-sky transition hover:bg-brand-sky/20"
+        >
+          Mint Passport to surface on-chain identity →
+        </button>
+      ) : (
+        <p className="mt-6 text-xs leading-relaxed text-zinc-500">
+          Connect a wallet to mint your on-chain Passport and unlock live reputation tracking.
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function MeetupPassportClient() {
   const [walletStatus, setWalletStatus] = useState<WalletStatus>("idle");
   const [walletAddress, setWalletAddress] = useState("");
@@ -149,6 +254,16 @@ export function MeetupPassportClient() {
   const [mintSubmitting, setMintSubmitting] = useState(false);
   const [onChainReputation, setOnChainReputation] = useState<number | null>(null);
   const [statusLoading, setStatusLoading] = useState(false);
+  const [meetupHubLoading, setMeetupHubLoading] = useState(false);
+  const [meetupEventName, setMeetupEventName] = useState<string | undefined>();
+  const [meetupEventCity, setMeetupEventCity] = useState<string | undefined>();
+  const [meetupEventCountry, setMeetupEventCountry] = useState<string | undefined>();
+  const [circlesAssigned, setCirclesAssigned] = useState(false);
+  const [myCircle, setMyCircle] = useState<StoredBuilderCircle | null>(null);
+  const [memberFullName, setMemberFullName] = useState("");
+  const [memberCity, setMemberCity] = useState("");
+  const [memberJoinDate, setMemberJoinDate] = useState("");
+  const [memberOffChainReputation, setMemberOffChainReputation] = useState<number | null>(null);
 
   const totalPreviewRep = useMemo(
     () =>
@@ -158,6 +273,115 @@ export function MeetupPassportClient() {
     [],
   );
   const contractStatus = getBetterDevContractStatus();
+
+  const passportReputation = useMemo(() => {
+    if (passportMinted && onChainReputation !== null) return onChainReputation;
+    if (memberOffChainReputation !== null) return memberOffChainReputation;
+    return totalPreviewRep;
+  }, [passportMinted, onChainReputation, memberOffChainReputation, totalPreviewRep]);
+
+  const passportJoinedLabel = memberJoinDate ? formatJoinMonthYear(memberJoinDate) : undefined;
+
+  const applyWalletPassport = useCallback(
+    (data: {
+      minted: boolean;
+      communityId?: string;
+      tokenId?: number;
+      onChainReputation?: number;
+      hasAttended?: boolean;
+    }) => {
+      if (!data.minted) {
+        setStep("passport");
+        return;
+      }
+      setPassportMinted(true);
+      if (data.communityId) setCommunityId(data.communityId);
+      if (data.tokenId != null) setPassportTokenId(data.tokenId);
+      if (data.onChainReputation != null) setOnChainReputation(data.onChainReputation);
+      if (data.hasAttended) setAttendanceVerified(true);
+      setStep("attendance");
+    },
+    [],
+  );
+
+  const loadWalletPassportStatus = useCallback(
+    async (address: string) => {
+      if (!contractStatus.configured) {
+        const demo = readDemoPassport(address);
+        if (demo) {
+          applyWalletPassport({
+            minted: true,
+            communityId: demo.communityId,
+            tokenId: demo.tokenId,
+          });
+          return true;
+        }
+        return false;
+      }
+
+      try {
+        const res = await fetch(
+          `/api/passport/wallet-status?wallet=${encodeURIComponent(address)}`,
+          { cache: "no-store" },
+        );
+        const data = (await res.json()) as {
+          error?: string;
+          minted?: boolean;
+          communityId?: string;
+          tokenId?: number;
+          onChainReputation?: number;
+          hasAttended?: boolean;
+        };
+        if (!res.ok) throw new Error(data.error ?? "Could not load wallet passport status.");
+        applyWalletPassport({
+          minted: Boolean(data.minted),
+          communityId: data.communityId,
+          tokenId: data.tokenId,
+          onChainReputation: data.onChainReputation,
+          hasAttended: data.hasAttended,
+        });
+        return Boolean(data.minted);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Could not load wallet passport status.");
+        return false;
+      }
+    },
+    [applyWalletPassport, contractStatus.configured],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/auth/me", { cache: "no-store" });
+        if (!res.ok || cancelled) return;
+        const data = (await res.json()) as {
+          member?: {
+            email?: string;
+            communityId?: string;
+            fullName?: string;
+            city?: string;
+            joinDate?: string;
+            reputation?: number;
+          };
+        };
+        if (cancelled || !data.member) return;
+        if (data.member.email) setMemberEmail(data.member.email);
+        if (data.member.communityId) setCommunityId(data.member.communityId);
+        if (data.member.fullName) setMemberFullName(data.member.fullName);
+        if (data.member.city) setMemberCity(data.member.city);
+        if (data.member.joinDate) setMemberJoinDate(data.member.joinDate);
+        if (typeof data.member.reputation === "number") {
+          setMemberOffChainReputation(data.member.reputation);
+        }
+      } catch {
+        // Not signed in — user can enter email manually.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const refreshOnChainStatus = useCallback(async () => {
     if (!memberEmail.includes("@")) return;
@@ -194,13 +418,66 @@ export function MeetupPassportClient() {
     }
   }, [memberEmail, walletAddress]);
 
+  const loadMeetupHub = useCallback(async () => {
+    const id = communityId.trim().toUpperCase();
+    if (!id) return;
+
+    setMeetupHubLoading(true);
+    try {
+      const meetupId = DEMO_MEETUP.id;
+      const [rsvpRes, circlesRes] = await Promise.all([
+        fetch(`/api/meetups/${encodeURIComponent(meetupId)}/rsvp`, { cache: "no-store" }),
+        fetch(
+          `/api/meetups/${encodeURIComponent(meetupId)}/builder-circles?communityId=${encodeURIComponent(id)}`,
+          { cache: "no-store" },
+        ),
+      ]);
+
+      const rsvpData = (await rsvpRes.json()) as {
+        event?: { name?: string; city?: string; country?: string };
+      };
+      if (rsvpRes.ok && rsvpData.event) {
+        setMeetupEventName(rsvpData.event.name);
+        setMeetupEventCity(rsvpData.event.city);
+        setMeetupEventCountry(rsvpData.event.country);
+      }
+
+      const circlesData = (await circlesRes.json()) as {
+        assigned?: boolean;
+        myCircle?: StoredBuilderCircle | null;
+      };
+      if (circlesRes.ok) {
+        setCirclesAssigned(Boolean(circlesData.assigned));
+        setMyCircle(circlesData.myCircle ?? null);
+      } else {
+        setCirclesAssigned(false);
+        setMyCircle(null);
+      }
+    } catch {
+      setCirclesAssigned(false);
+      setMyCircle(null);
+    } finally {
+      setMeetupHubLoading(false);
+    }
+  }, [communityId]);
+
   useEffect(() => {
     if (step === "attendance" && memberEmail.includes("@")) {
       void refreshOnChainStatus();
     }
   }, [step, memberEmail, refreshOnChainStatus]);
 
-  const displayReputation = onChainReputation ?? totalPreviewRep;
+  useEffect(() => {
+    if (walletStatus === "connected" && memberEmail.includes("@")) {
+      void refreshOnChainStatus();
+    }
+  }, [walletStatus, memberEmail, walletAddress, refreshOnChainStatus]);
+
+  useEffect(() => {
+    if (step === "attendance" && communityId.trim()) {
+      void loadMeetupHub();
+    }
+  }, [step, communityId, loadMeetupHub]);
 
   const connectWallet = async () => {
     setError(null);
@@ -217,7 +494,7 @@ export function MeetupPassportClient() {
       if (!account) throw new Error("No wallet account returned.");
       setWalletAddress(account);
       setWalletStatus("connected");
-      setStep("passport");
+      await loadWalletPassportStatus(account);
     } catch (e) {
       setWalletStatus("idle");
       setError(e instanceof Error ? e.message : "Could not connect wallet.");
@@ -228,8 +505,6 @@ export function MeetupPassportClient() {
     setWalletAddress("");
     setWalletStatus("idle");
     setStep("connect");
-    setPassportMinted(false);
-    setAttendanceVerified(false);
     setError(null);
   };
 
@@ -243,8 +518,16 @@ export function MeetupPassportClient() {
   };
 
   const mintPassport = async () => {
+    if (passportMinted) {
+      setStep("attendance");
+      return;
+    }
     if (!contractStatus.configured) {
+      const id = communityId || "DEV-0001";
+      setCommunityId(id);
+      setPassportTokenId(1);
       setPassportMinted(true);
+      if (walletAddress) writeDemoPassport(walletAddress, id, 1);
       setStep("attendance");
       return;
     }
@@ -271,7 +554,7 @@ export function MeetupPassportClient() {
       if (!res.ok) throw new Error(data.error ?? "Mint failed.");
       setCommunityId(data.communityId ?? "");
       setPassportTokenId(data.tokenId ?? null);
-      setMintTxHash(data.mintTx ?? null);
+      if (data.mintTx) setMintTxHash(data.mintTx);
       setPassportMinted(true);
       setStep("attendance");
       await refreshOnChainStatus();
@@ -408,12 +691,6 @@ export function MeetupPassportClient() {
             <span className="rounded-full border border-brand-sky/20 bg-brand-sky/10 px-4 py-2 text-xs font-bold text-brand-sky">
               Current deployment: {CURRENT_DEPLOYMENT.deployment}
             </span>
-            <span className="rounded-full border border-white/10 bg-white/[0.035] px-4 py-2 text-xs font-bold text-zinc-400">
-              Supported: {CHAIN_AGNOSTIC_STRATEGY.supportedChains.join(", ")}
-            </span>
-            <span className="rounded-full border border-white/10 bg-white/[0.035] px-4 py-2 text-xs font-bold text-zinc-400">
-              Mode: {contractStatus.configured ? "Contracts ready" : "Demo fallback"}
-            </span>
           </div>
 
           <div className="mt-12 grid gap-4 sm:grid-cols-3">
@@ -421,19 +698,19 @@ export function MeetupPassportClient() {
               active={step === "connect"}
               index="01. Connect"
               title="Identity Layer"
-              description="Authenticate via wallet or SSO to initiate your developer profile."
+              description="Connect your wallet to view or mint your BetterDev Passport."
             />
             <StepCard
               active={step === "passport"}
               index="02. Passport"
               title="Mint Credential"
-              description="Generate a non-transferable ID for ecosystem recognition."
+              description="Mint once — your Passport stays linked to this wallet permanently."
             />
             <StepCard
               active={step === "attendance"}
               index="03. Attendance"
-              title="Verify Action"
-              description="Scan QR codes at verified meetups to accumulate reputation."
+              title="Attend Meetup"
+              description="See your Builder Circle assignment and verify participation at the event."
             />
           </div>
 
@@ -447,10 +724,14 @@ export function MeetupPassportClient() {
             <AbstractCube />
             {step === "connect" && (
               <>
-                <h2 className="text-2xl font-black tracking-tight">Attend our next meetup</h2>
+                <h2 className="text-2xl font-black tracking-tight">View or Mint Passport</h2>
                 <p className="mt-3 max-w-lg text-sm leading-relaxed text-zinc-500">
-                  Your first blockchain step is not a token sale. It is a verified meetup action tied to your
-                  BetterDev Passport.
+                  <span className="font-semibold text-zinc-400">First time here?</span> Connect your wallet and
+                  mint your BetterDev Passport once — it stays linked to your wallet permanently.
+                </p>
+                <p className="mt-3 max-w-lg text-sm leading-relaxed text-zinc-500">
+                  <span className="font-semibold text-zinc-400">Already minted?</span> Connect the same wallet to
+                  view your Passport, reputation, and meetup status.
                 </p>
                 <button
                   type="button"
@@ -463,12 +744,52 @@ export function MeetupPassportClient() {
               </>
             )}
 
-            {step === "passport" && (
+            {step === "passport" && passportMinted && (
+              <>
+                <h2 className="text-2xl font-black tracking-tight">Passport already minted</h2>
+                <p className="mt-3 max-w-lg text-sm leading-relaxed text-zinc-500">
+                  Your on-chain BetterDev Passport is linked to{" "}
+                  <span className="font-mono text-brand-sky">{communityId || "your Community ID"}</span>.
+                  Minting is a one-time event — reconnecting this wallet will always surface your passport.
+                </p>
+                <div className="mt-6 max-w-sm">
+                  <PassportIdCard
+                    communityId={communityId}
+                    fullName={memberFullName}
+                    city={memberCity}
+                    joinedLabel={passportJoinedLabel}
+                    reputation={passportReputation}
+                  />
+                  {passportTokenId != null ? (
+                    <p className="mt-3 text-center text-xs text-brand-sky">Token ID: {passportTokenId}</p>
+                  ) : null}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setStep("attendance")}
+                  className="mt-6 rounded-xl bg-brand-sash-diag px-7 py-3 text-sm font-black text-white shadow-[0_0_36px_-14px_rgba(233,30,140,0.95)] transition hover:opacity-95"
+                >
+                  Continue to attendance →
+                </button>
+                {mintTxHash ? (
+                  <a
+                    href={transactionExplorerUrl(mintTxHash)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 inline-flex text-xs font-bold text-brand-sky hover:text-white"
+                  >
+                    View mint transaction
+                  </a>
+                ) : null}
+              </>
+            )}
+
+            {step === "passport" && !passportMinted && (
               <>
                 <h2 className="text-2xl font-black tracking-tight">Mint BetterDev Passport</h2>
                 <p className="mt-3 max-w-lg text-sm leading-relaxed text-zinc-500">
                   Wallet connected: <span className="font-mono text-brand-sky">{shortAddress(walletAddress)}</span>.
-                  Mint your on-chain Passport NFT tied to your BetterDev Community ID.
+                  Mint your on-chain Passport NFT once — it stays linked to this wallet permanently.
                 </p>
                 <div className="mt-6 max-w-sm space-y-3">
                   <div>
@@ -485,22 +806,22 @@ export function MeetupPassportClient() {
                     />
                   </div>
                 </div>
-                <div className="mt-6 max-w-sm rounded-2xl border border-brand-sky/20 bg-brand-sky/10 p-4">
-                  <Kicker>Credential Preview</Kicker>
-                  <p className="mt-3 font-mono text-3xl font-black">{communityId || "DEV-????"}</p>
-                  <p className="mt-1 text-sm text-zinc-400">{UNIVERSAL_IDENTITY.productName}</p>
-                  <p className="mt-1 text-xs text-zinc-500">Current deployment: {PASSPORT_NETWORK.name}</p>
-                  {passportTokenId && (
-                    <p className="mt-2 text-xs text-brand-sky">Token ID: {passportTokenId}</p>
-                  )}
+                <div className="mt-6 max-w-sm">
+                  <PassportIdCard
+                    communityId={communityId}
+                    fullName={memberFullName}
+                    city={memberCity}
+                    joinedLabel={passportJoinedLabel}
+                    reputation={passportReputation}
+                  />
                 </div>
                 <button
                   type="button"
                   onClick={() => void mintPassport()}
-                  disabled={mintSubmitting}
+                  disabled={mintSubmitting || passportMinted}
                   className="mt-6 rounded-xl bg-brand-sash-diag px-7 py-3 text-sm font-black text-white shadow-[0_0_36px_-14px_rgba(233,30,140,0.95)] transition hover:opacity-95 disabled:opacity-60"
                 >
-                  {mintSubmitting ? "Minting…" : passportMinted ? "Passport Minted" : "Mint Passport"}
+                  {mintSubmitting ? "Minting…" : "Mint Passport"}
                 </button>
                 {mintTxHash && (
                   <a
@@ -516,89 +837,59 @@ export function MeetupPassportClient() {
             )}
 
             {step === "attendance" && (
-              <>
-                <h2 className="text-2xl font-black tracking-tight">Verify meetup attendance</h2>
-                <p className="mt-3 max-w-lg text-sm leading-relaxed text-zinc-500">
-                  Scan the QR code at the event to check in. Your attendance is verified on-chain and adds +20
-                  reputation to your Community ID.
-                </p>
-                <Link
-                  href="/checkin"
-                  className="mt-6 inline-flex rounded-xl bg-brand-sash-diag px-7 py-3 text-sm font-black text-white shadow-[0_0_36px_-14px_rgba(233,30,140,0.95)] transition hover:opacity-95"
-                >
-                  Open check-in page
-                </Link>
-                {!memberEmail.includes("@") && (
-                  <div className="mt-4 max-w-sm">
-                    <label htmlFor="attendance-email" className="text-xs font-bold text-zinc-400">
-                      Email to refresh status
-                    </label>
-                    <input
-                      id="attendance-email"
-                      type="email"
-                      value={memberEmail}
-                      onChange={(e) => setMemberEmail(e.target.value)}
-                      className="mt-2 w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-sm text-white outline-none focus:border-brand-sky/40"
-                      placeholder="you@example.com"
-                    />
-                  </div>
-                )}
-                <button
-                  type="button"
-                  onClick={() => void refreshOnChainStatus()}
-                  disabled={statusLoading || !memberEmail.includes("@")}
-                  className="mt-3 block rounded-xl border border-white/10 px-7 py-3 text-sm font-black text-white transition hover:bg-white/10 disabled:opacity-60"
-                >
-                  {statusLoading ? "Refreshing…" : "Refresh attendance status"}
-                </button>
-                {attendanceVerified && (
-                  <p className="mt-5 max-w-lg rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm text-emerald-200">
-                    Attendance verified on-chain
-                    {onChainReputation !== null ? ` · ${onChainReputation} reputation` : ""}.
-                  </p>
-                )}
-                <Link
-                  href="/organizer"
-                  className="mt-4 inline-flex text-xs font-bold text-zinc-500 hover:text-brand-sky"
-                >
-                  Organizer: create event & check-in QR
-                </Link>
-              </>
+              <MeetupHubCard
+                loading={meetupHubLoading}
+                meetupId={DEMO_MEETUP.id}
+                eventName={meetupEventName ?? DEMO_MEETUP.name}
+                eventCity={meetupEventCity ?? DEMO_MEETUP.city}
+                eventCountry={meetupEventCountry}
+                circlesAssigned={circlesAssigned}
+                myCircle={myCircle}
+                communityId={communityId}
+                attendanceVerified={attendanceVerified}
+                onChainReputation={onChainReputation}
+                statusLoading={statusLoading}
+                canRefreshStatus={memberEmail.includes("@")}
+                onRefreshStatus={() => void refreshOnChainStatus()}
+              />
             )}
           </div>
         </div>
 
         <aside className="space-y-8 lg:pt-8">
-          <div className="rounded-[2rem] border border-white/10 bg-[#17171b] p-7 text-white shadow-[0_24px_80px_-42px_rgba(14,165,233,0.28)] sm:p-9">
-            <Kicker tone="pink">Reputation Pipeline</Kicker>
-            <h2 className="mt-4 text-3xl font-black leading-tight tracking-[-0.04em] text-zinc-400">
-              Actions become events. Milestones become NFTs.
-            </h2>
-            <p className="mt-5 text-sm leading-relaxed text-zinc-500">
-              This prevents NFT spam while keeping rewards scalable.
-            </p>
-            <div className="mt-8 rounded-2xl border border-white/10 bg-black p-6 text-white">
-              <Kicker tone="muted">{onChainReputation !== null ? "Live Reputation" : "Preview Reputation"}</Kicker>
-              <div className="mt-3 flex items-end gap-2">
-                <span className="text-6xl font-black tracking-[-0.08em]">{displayReputation}</span>
-                <span className="mb-2 text-sm font-bold uppercase text-zinc-500">Rep</span>
-              </div>
-              <p className="mt-2 text-xs text-zinc-500">
-                {onChainReputation !== null
-                  ? "On-chain score from Arbitrum Sepolia"
-                  : "points from profile, attendance, recap, and referral events"}
-              </p>
+          {walletStatus === "connected" ? (
+            <div>
+              <PassportIdCard
+                communityId={communityId}
+                fullName={memberFullName}
+                city={memberCity}
+                joinedLabel={passportJoinedLabel}
+                reputation={passportReputation}
+              />
+              {passportMinted && passportTokenId != null ? (
+                <p className="mt-3 text-center text-xs text-zinc-500">
+                  On-chain Passport · Token ID {passportTokenId}
+                </p>
+              ) : null}
+              {passportMinted && mintTxHash ? (
+                <a
+                  href={transactionExplorerUrl(mintTxHash)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 flex justify-center text-xs font-bold text-brand-sky transition hover:text-white"
+                >
+                  View mint on explorer →
+                </a>
+              ) : null}
             </div>
-            <div className="mt-7">
-              <div className="flex items-center justify-between gap-4 text-sm">
-                <span className="text-zinc-400">Pipeline Status</span>
-                <span className="font-black uppercase text-brand-sky">Active // 0x...f32</span>
-              </div>
-              <div className="mt-4 h-1 rounded-full bg-white/10">
-                <div className="h-full w-[55%] rounded-full bg-brand-sky shadow-[0_0_20px_rgba(56,189,248,0.55)]" />
-              </div>
-            </div>
-          </div>
+          ) : (
+            <ReputationPipelineCard
+              previewReputation={totalPreviewRep}
+              walletConnected={false}
+              walletAddress={walletAddress}
+              onMint={() => setStep("passport")}
+            />
+          )}
 
           <div className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-7 sm:p-8">
             <div className="flex items-center justify-between">

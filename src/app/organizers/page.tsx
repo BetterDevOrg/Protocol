@@ -8,15 +8,20 @@ export default function OrganizersDirectoryPage() {
   const [organizers, setOrganizers] = useState<Organizer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      setLoading(true);
       try {
         const res = await fetch("/api/organizers", { cache: "no-store" });
         const data = (await res.json()) as { organizers?: Organizer[]; error?: string };
         if (!res.ok) throw new Error(data.error ?? "Could not load organizers.");
-        if (!cancelled) setOrganizers(data.organizers ?? []);
+        if (!cancelled) {
+          setOrganizers(data.organizers ?? []);
+          setError(null);
+        }
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : "Could not load organizers.");
@@ -28,7 +33,7 @@ export default function OrganizersDirectoryPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [retryKey]);
 
   return (
     <div className="min-h-dvh bg-black px-5 py-16 text-white">
@@ -44,12 +49,20 @@ export default function OrganizersDirectoryPage() {
           City organizers host local meetups, run check-ins, and grow the builder community in their city.
         </p>
 
-        {loading ? (
+        {loading && !error ? (
           <p className="mt-10 text-zinc-500">Loading organizers…</p>
         ) : error ? (
-          <p className="mt-10 rounded-xl border border-brand-pink/30 bg-brand-pink/10 p-4 text-sm text-brand-pink">
-            {error}
-          </p>
+          <div className="mt-10 rounded-xl border border-brand-pink/30 bg-brand-pink/10 p-4">
+            <p className="text-sm text-brand-pink">{error}</p>
+            <button
+              type="button"
+              onClick={() => setRetryKey((key) => key + 1)}
+              disabled={loading}
+              className="mt-4 rounded-xl bg-brand-sash-diag px-5 py-2.5 text-sm font-black text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? "Trying again…" : "Try again"}
+            </button>
+          </div>
         ) : organizers.length === 0 ? (
           <div className="mt-10 flex flex-col items-center rounded-2xl border border-white/10 bg-white/[0.035] p-10 text-center">
             <div className="flex size-12 items-center justify-center rounded-full border border-brand-sky/20 bg-brand-sky/10">

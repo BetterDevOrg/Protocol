@@ -165,7 +165,7 @@ export default function MeetupRsvpPage() {
     <div className="min-h-dvh bg-black px-5 py-16 text-white">
       <div className="mx-auto max-w-lg">
         <Link href="/meetup" className="text-xs font-bold text-brand-sky transition hover:text-white">
-          ← Back to Passport
+          ← Back to meetups
         </Link>
         <p className="mt-6 text-[10px] font-black uppercase tracking-[0.28em] text-brand-sky">Meetup RSVP</p>
         <h1 className="mt-3 text-3xl font-black tracking-tight">{event?.name ?? meetupId}</h1>

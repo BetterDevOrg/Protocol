@@ -97,8 +97,8 @@ function BuilderCirclesView() {
 
   return (
     <div>
-      <Link href="/meetup" className="text-xs font-bold text-brand-sky transition hover:text-white">
-        ← Back to Passport
+      <Link href={`/meetup/${params.meetupId}`} className="text-xs font-bold text-brand-sky transition hover:text-white">
+        ← Back to RSVP
       </Link>
       <p className="mt-6 text-[10px] font-black uppercase tracking-[0.28em] text-brand-sky">Builder Circles</p>
       <h1 className="mt-3 text-3xl font-black tracking-tight">Your meetup group</h1>

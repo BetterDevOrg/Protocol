@@ -1,5 +1,8 @@
 export const MIN_BUILDER_CIRCLE_PARTICIPANTS = 6;
 export const DEFAULT_BUILDER_CIRCLE_GROUP_SIZE = 4;
+export const BUILDER_CIRCLE_GROUP_SIZE_MIN = 4;
+export const BUILDER_CIRCLE_GROUP_SIZE_MAX = 6;
+export const BUILDER_CIRCLE_EXAMPLE_ATTENDEES = 24;
 export const ORGANIZER_REP_BUILDER_CIRCLE_BONUS = 5;
 
 export type BuilderCirclePoolMode = "rsvp" | "city" | "hybrid";

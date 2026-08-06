@@ -16,6 +16,8 @@ export type MilestoneBadge = {
   description: string;
 };
 
+export { MILESTONE_BADGES } from "@/lib/milestone-badges";
+
 export type BuilderCircleMember = {
   id: string;
   name: string;
@@ -183,32 +185,5 @@ export const REPUTATION_ACTIONS: ReputationAction[] = [
     category: "open-source",
     nftPolicy: "milestone",
     description: "Make a verified code contribution to a BetterDev or partner project.",
-  },
-];
-
-export const MILESTONE_BADGES: MilestoneBadge[] = [
-  {
-    id: "betterdev-passport",
-    name: "BetterDev Passport",
-    threshold: 0,
-    description: "Minted once as the member's on-chain BetterDev identity.",
-  },
-  {
-    id: "first-meetup",
-    name: "First Meetup Stamp",
-    threshold: 20,
-    description: "Unlocked after the first verified meetup attendance.",
-  },
-  {
-    id: "community-builder",
-    name: "Community Builder",
-    threshold: 100,
-    description: "Unlocked after consistent participation and contribution.",
-  },
-  {
-    id: "community-champion",
-    name: "Community Champion",
-    threshold: 250,
-    description: "Unlocked for members who help grow BetterDev across chapters.",
   },
 ];

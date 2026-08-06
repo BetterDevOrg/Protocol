@@ -10,6 +10,8 @@ import {
   MILESTONE_BADGES,
   REPUTATION_ACTIONS,
 } from "@/lib/passport";
+import { MilestoneBadgeGrid } from "@/components/badges/milestone-badge-grid";
+import type { MilestoneBadgeMintStatusMap } from "@/lib/milestone-badges";
 import { PROTOCOL_LAYERS, PROTOCOL_PRINCIPLE } from "@/lib/protocol";
 import type { StoredBuilderCircle } from "@/lib/builder-circle-config";
 import { BuilderCirclesOrganizerCard } from "@/components/passport/builder-circles-organizer-card";
@@ -250,6 +252,7 @@ export function MeetupPassportClient() {
   const [memberCity, setMemberCity] = useState("");
   const [memberJoinDate, setMemberJoinDate] = useState("");
   const [memberOffChainReputation, setMemberOffChainReputation] = useState<number | null>(null);
+  const [mintedBadges, setMintedBadges] = useState<MilestoneBadgeMintStatusMap>({});
 
   const totalPreviewRep = useMemo(
     () =>
@@ -265,6 +268,72 @@ export function MeetupPassportClient() {
     if (memberOffChainReputation !== null) return memberOffChainReputation;
     return totalPreviewRep;
   }, [passportMinted, onChainReputation, memberOffChainReputation, totalPreviewRep]);
+
+  const milestoneBadgeContext = useMemo(
+    () => ({
+      reputation: passportReputation,
+      passportMinted,
+      attendanceVerified,
+      communityId: communityId || undefined,
+      email: memberEmail || undefined,
+      meetupId: DEMO_MEETUP.id,
+      mintedBadges,
+    }),
+    [
+      passportReputation,
+      passportMinted,
+      attendanceVerified,
+      communityId,
+      memberEmail,
+      mintedBadges,
+    ],
+  );
+
+  const refreshMilestoneMintStatus = useCallback(async () => {
+    const id = communityId.trim().toUpperCase();
+    if (!id) return;
+
+    try {
+      const params = new URLSearchParams({
+        communityId: id,
+        meetupId: DEMO_MEETUP.id,
+      });
+      if (memberEmail.includes("@")) params.set("email", memberEmail);
+
+      const res = await fetch(`/api/badges/mint?${params.toString()}`, { cache: "no-store" });
+      const data = (await res.json()) as {
+        badges?: Record<string, { minted: boolean; tokenId: number }>;
+      };
+      if (!res.ok || !data.badges) return;
+
+      const next: MilestoneBadgeMintStatusMap = {};
+      for (const [badgeId, record] of Object.entries(data.badges)) {
+        next[badgeId] = { minted: record.minted, tokenId: record.tokenId };
+      }
+      setMintedBadges(next);
+    } catch {
+      // Non-blocking badge status refresh.
+    }
+  }, [communityId, memberEmail]);
+
+  useEffect(() => {
+    void refreshMilestoneMintStatus();
+  }, [refreshMilestoneMintStatus, passportMinted, attendanceVerified]);
+
+  const handleMilestoneMintSuccess = useCallback(
+    (badgeId: string, tokenId: number, mintTx?: string) => {
+      setMintedBadges((prev) => ({
+        ...prev,
+        [badgeId]: { minted: true, tokenId, mintTx },
+      }));
+      if (badgeId === "betterdev-passport") {
+        setPassportMinted(true);
+        setPassportTokenId(tokenId);
+        if (mintTx) setMintTxHash(mintTx);
+      }
+    },
+    [],
+  );
 
   const passportJoinedLabel = memberJoinDate ? formatJoinMonthYear(memberJoinDate) : undefined;
 
@@ -839,26 +908,11 @@ export function MeetupPassportClient() {
         </aside>
       </section>
 
-      <section className="mx-auto max-w-[1200px] px-5 py-20 sm:px-8 lg:px-10 lg:py-24">
-        <div className="mb-10 flex items-end justify-between gap-6 border-b border-white/10 pb-7">
-          <div>
-            <Kicker tone="muted">System Achievements</Kicker>
-            <h2 className="mt-3 text-3xl font-black tracking-[-0.04em]">Milestone badges</h2>
-          </div>
-          <p className="hidden text-xs text-zinc-600 sm:block">Showing 4 of 4 unlocked statuses</p>
-        </div>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {MILESTONE_BADGES.map((badge) => (
-            <div key={badge.id} className="min-h-48 rounded-2xl border border-white/10 bg-white/[0.035] p-7">
-              <h3 className="mt-10 text-base font-black">{badge.name}</h3>
-              <p className="mt-3 text-xs leading-relaxed text-zinc-600">{badge.description}</p>
-              <p className="mt-6 text-[10px] font-black uppercase tracking-[0.24em] text-brand-pink">
-                {badge.threshold === 0 ? "Identity" : `${badge.threshold}+ Rep`}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
+      <MilestoneBadgeGrid
+        context={milestoneBadgeContext}
+        showMintActions
+        onMintSuccess={handleMilestoneMintSuccess}
+      />
 
       <section id="infrastructure" className="mx-auto max-w-[1200px] px-5 py-20 sm:px-8 lg:px-10 lg:py-24">
         <div className="relative min-h-[460px] overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.035] p-8 sm:p-12">

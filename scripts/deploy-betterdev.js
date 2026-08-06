@@ -20,6 +20,10 @@ async function main() {
   const meetupPassport = await MeetupPassport.deploy(owner);
   await meetupPassport.waitForDeployment();
 
+  const MilestoneBadge = await ethers.getContractFactory("MilestoneBadge");
+  const milestoneBadge = await MilestoneBadge.deploy(owner);
+  await milestoneBadge.waitForDeployment();
+
   const Reputation = await ethers.getContractFactory("ReputationRegistry");
   const reputation = await Reputation.deploy(owner);
   await reputation.waitForDeployment();
@@ -62,6 +66,7 @@ async function main() {
   const addresses = {
     BetterDevPassport: await passport.getAddress(),
     MeetupPassport: await meetupPassport.getAddress(),
+    MilestoneBadge: await milestoneBadge.getAddress(),
     ReputationRegistry: await reputation.getAddress(),
     MeetupRegistry: await meetup.getAddress(),
     BuilderCircleVRF: await builderCircleVrf.getAddress(),

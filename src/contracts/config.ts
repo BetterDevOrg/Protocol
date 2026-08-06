@@ -6,6 +6,7 @@ export const betterDevContractAddresses = {
   builderCircleVrf: process.env.NEXT_PUBLIC_BUILDER_CIRCLE_VRF_ADDRESS || "",
   organizerReputationRegistry: process.env.NEXT_PUBLIC_ORGANIZER_REPUTATION_REGISTRY_ADDRESS || "",
   organizerCodeVrf: process.env.NEXT_PUBLIC_ORGANIZER_CODE_VRF_ADDRESS || "",
+  milestoneBadge: process.env.NEXT_PUBLIC_MILESTONE_BADGE_ADDRESS || "",
 } as const;
 
 export function areBetterDevContractsConfigured(): boolean {
@@ -27,4 +28,8 @@ export function isOrganizerReputationOnChainConfigured(): boolean {
 
 export function isOrganizerCodeVrfConfigured(): boolean {
   return Boolean(betterDevContractAddresses.organizerCodeVrf);
+}
+
+export function isMilestoneBadgeConfigured(): boolean {
+  return Boolean(betterDevContractAddresses.milestoneBadge);
 }

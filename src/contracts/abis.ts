@@ -5,3 +5,4 @@ export { default as MeetupRegistryAbi } from "./MeetupRegistry.json";
 export { default as BuilderCircleVRFAbi } from "./BuilderCircleVRF.json";
 export { default as OrganizerReputationRegistryAbi } from "./OrganizerReputationRegistry.json";
 export { default as OrganizerCodeVRFAbi } from "./OrganizerCodeVRF.json";
+export { default as MilestoneBadgeAbi } from "./MilestoneBadge.json";

@@ -1,5 +1,6 @@
 "use client";
 
+import { MilestoneBadgeProfileSection } from "@/components/badges/milestone-badge-profile-section";
 import { Spinner } from "@/components/ui/spinner";
 import { formatJoinDate } from "@/lib/format-date";
 import type { Member } from "@/types/member";
@@ -95,8 +96,8 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-dvh bg-black px-5 py-16 text-white">
-      <div className="mx-auto max-w-lg">
-        <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-8">
+      <div className="mx-auto max-w-5xl">
+        <div className="mx-auto max-w-lg rounded-2xl border border-white/10 bg-white/[0.035] p-8">
           <p className="text-[10px] font-black uppercase tracking-[0.28em] text-brand-sky">Your profile</p>
           <h1 className="mt-3 text-2xl font-black text-white">{member.fullName || "BetterDev member"}</h1>
           <p className="mt-2 text-sm text-zinc-400">Signed in as {member.email}</p>
@@ -253,6 +254,8 @@ export default function ProfilePage() {
             </button>
           </div>
         </div>
+
+        <MilestoneBadgeProfileSection email={member.email} />
 
         <p className="mt-6 text-center text-xs text-zinc-600">
           <Link href="/" className="font-bold text-brand-sky hover:text-white">

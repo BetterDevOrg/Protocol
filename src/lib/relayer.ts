@@ -2,11 +2,17 @@ import {
   BetterDevPassportAbi,
   BuilderCircleVRFAbi,
   MeetupPassportAbi,
+  MilestoneBadgeAbi,
   MeetupRegistryAbi,
   OrganizerCodeVRFAbi,
   ReputationRegistryAbi,
 } from "@/contracts/abis";
-import { betterDevContractAddresses, areBetterDevContractsConfigured, isMeetupPassportConfigured } from "@/contracts/config";
+import {
+  betterDevContractAddresses,
+  areBetterDevContractsConfigured,
+  isMeetupPassportConfigured,
+  isMilestoneBadgeConfigured,
+} from "@/contracts/config";
 import { meetupIdToBytes32 } from "@/lib/contracts";
 import { organizerIdToBytes32 } from "@/lib/organizer-code";
 import { Contract, JsonRpcProvider, Wallet } from "ethers";
@@ -49,6 +55,19 @@ export function getReadOnlyMeetupPassportContract() {
   return new Contract(
     betterDevContractAddresses.meetupPassport,
     MeetupPassportAbi,
+    getReadOnlyProvider(),
+  );
+}
+
+export function getRelayerMilestoneBadgeContract() {
+  const signer = getRelayerSigner();
+  return new Contract(betterDevContractAddresses.milestoneBadge, MilestoneBadgeAbi, signer);
+}
+
+export function getReadOnlyMilestoneBadgeContract() {
+  return new Contract(
+    betterDevContractAddresses.milestoneBadge,
+    MilestoneBadgeAbi,
     getReadOnlyProvider(),
   );
 }
@@ -210,6 +229,40 @@ export async function readMeetupPassportStatus(
   const meetupPassport = getReadOnlyMeetupPassportContract();
   const meetupId = meetupIdToBytes32(meetupSlug);
   const tokenId = Number(await meetupPassport.tokenIdOf(meetupId, communityId));
+  return { minted: tokenId > 0, tokenId };
+}
+
+export async function mintMilestoneBadgeForMember(
+  walletAddress: string,
+  communityId: string,
+  badgeId: string,
+  metadataURI: string,
+): Promise<{ mintTx: string; tokenId: number }> {
+  if (!isMilestoneBadgeConfigured()) {
+    throw new Error("Milestone badge contract is not configured.");
+  }
+  const milestoneBadge = getRelayerMilestoneBadgeContract();
+  const badgeKey = meetupIdToBytes32(badgeId);
+  const tx = await milestoneBadge.mintMilestoneBadge(walletAddress, communityId, badgeKey, metadataURI, {
+    gasLimit: MINT_GAS_LIMIT,
+  });
+  const receipt = await tx.wait();
+  if (!receipt) throw new Error("Milestone badge mint transaction failed.");
+
+  const tokenId = Number(await milestoneBadge.tokenIdOf(badgeKey, communityId));
+  return { mintTx: receipt.hash, tokenId };
+}
+
+export async function readMilestoneBadgeStatus(
+  badgeId: string,
+  communityId: string,
+): Promise<{ minted: boolean; tokenId: number }> {
+  if (!isMilestoneBadgeConfigured()) {
+    return { minted: false, tokenId: 0 };
+  }
+  const milestoneBadge = getReadOnlyMilestoneBadgeContract();
+  const badgeKey = meetupIdToBytes32(badgeId);
+  const tokenId = Number(await milestoneBadge.tokenIdOf(badgeKey, communityId));
   return { minted: tokenId > 0, tokenId };
 }
 

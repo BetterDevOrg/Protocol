@@ -1218,6 +1218,45 @@
       "artifacts": [
         "MeetupPassport"
       ]
+    },
+    "C:\\Dev\\betterdev\\contracts\\MilestoneBadge.sol": {
+      "lastModificationDate": 1785976500285,
+      "contentHash": "0d55c1ebe45d59bfd0fd53e6ed4c0f73",
+      "sourceName": "contracts/MilestoneBadge.sol",
+      "solcConfig": {
+        "version": "0.8.26",
+        "settings": {
+          "evmVersion": "cancun",
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC721/ERC721.sol",
+        "@openzeppelin/contracts/access/Ownable.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.26"
+      ],
+      "artifacts": [
+        "MilestoneBadge"
+      ]
     }
   }
 }

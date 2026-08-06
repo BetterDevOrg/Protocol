@@ -254,18 +254,24 @@ export function BuilderCirclesOrganizerCard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 py-5">
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">Attendees</p>
-          <p className="mt-2 font-black">{display.attendees}</p>
+      <div className="grid grid-cols-1 gap-3 py-5 sm:grid-cols-3 sm:gap-4">
+        <div className="flex items-baseline justify-between gap-3 sm:block">
+          <p className="text-[10px] font-black uppercase tracking-[0.14em] text-zinc-600 sm:tracking-[0.2em]">
+            Attendees
+          </p>
+          <p className="font-black tabular-nums sm:mt-2">{display.attendees}</p>
         </div>
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">Per group</p>
-          <p className="mt-2 font-black">{GROUP_SIZE_LABEL}</p>
+        <div className="flex items-baseline justify-between gap-3 sm:block">
+          <p className="text-[10px] font-black uppercase tracking-[0.14em] text-zinc-600 sm:tracking-[0.2em]">
+            Per group
+          </p>
+          <p className="font-black tabular-nums sm:mt-2">{GROUP_SIZE_LABEL}</p>
         </div>
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">City</p>
-          <p className="mt-2 font-black text-brand-sky">{display.city}</p>
+        <div className="flex items-baseline justify-between gap-3 sm:block">
+          <p className="text-[10px] font-black uppercase tracking-[0.14em] text-zinc-600 sm:tracking-[0.2em]">
+            City
+          </p>
+          <p className="font-black text-brand-sky sm:mt-2">{display.city}</p>
         </div>
       </div>
 

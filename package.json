@@ -16,6 +16,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test:unit": "node scripts/run-unit-tests.cjs",
     "contracts:compile": "hardhat compile",
     "contracts:test": "hardhat test",
     "contracts:deploy:sepolia": "hardhat run scripts/deploy-betterdev.js --network arbitrumSepolia",

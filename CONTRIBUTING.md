@@ -92,6 +92,7 @@ If someone else is already assigned or has an open PR for an issue, please do no
 | `npm run dev` | Next.js dev server |
 | `npm run build` | Production build |
 | `npm run lint` | ESLint |
+| `npm run test:unit` | Run TypeScript unit tests |
 | `npm run contracts:compile` | Compile Solidity contracts |
 | `npm run contracts:test` | Run Hardhat tests |
 

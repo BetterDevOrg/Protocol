@@ -5,7 +5,11 @@ import {
   storeAuthCodeInGoogleSheets,
 } from "@/lib/google-sheets/client";
 import { isGoogleSheetsConfigured } from "@/lib/google-sheets/config";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
+
+const SEND_CODE_RATE_LIMIT = 3;
+const SEND_CODE_RATE_WINDOW_MS = 10 * 60 * 1000;
 
 export async function POST(request: Request) {
   if (process.env.NEXT_PUBLIC_USE_SUPABASE === "true") {
@@ -30,6 +34,14 @@ export async function POST(request: Request) {
   const email = normalizeLoginEmail(body.email ?? "");
   if (!isValidLoginEmail(email)) {
     return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 });
+  }
+
+  const rateLimit = checkRateLimit(`send-code:${email}`, SEND_CODE_RATE_LIMIT, SEND_CODE_RATE_WINDOW_MS);
+  if (!rateLimit.ok) {
+    return NextResponse.json(
+      { error: "Too many login code requests for this email. Please try again later." },
+      { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds) } },
+    );
   }
 
   try {

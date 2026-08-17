@@ -5,6 +5,7 @@ const nav = [
   { href: "#events", label: "EVENTS" },
   { href: "#process", label: "PROCESS" },
   { href: "#values", label: "VALUES" },
+  { href: "#partners", label: "PARTNERS" },
   { href: "#network", label: "NETWORK" },
 ];
 

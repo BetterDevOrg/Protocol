@@ -1,3 +1,4 @@
+import { PartnerLogoGrid } from "@/components/partnership/partner-logo-grid";
 import { CONTACT_EMAIL, COMMUNITY_URLS } from "@/lib/constants";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -35,6 +36,8 @@ export default function PartnershipPage() {
               ),
             )}
           </div>
+
+          <PartnerLogoGrid />
 
           <div className="mt-10 rounded-2xl border border-brand-sky/25 bg-brand-sky/10 p-5">
             <h2 className="text-lg font-semibold">Start a partnership conversation</h2>

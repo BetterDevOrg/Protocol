@@ -8,6 +8,7 @@ import { EventGallery } from "@/components/landing/event-gallery";
 import { HowItWorks } from "@/components/landing/how-it-works";
 import { LandingSidebar } from "@/components/landing/sidebar";
 import { AccountNavButton } from "@/components/landing/account-nav-button";
+import { PartnerLogoMarquee } from "@/components/landing/partner-logo-marquee";
 import { SocialProof } from "@/components/landing/social-proof";
 import { WhyJoin } from "@/components/landing/why-join";
 import Link from "next/link";
@@ -50,6 +51,9 @@ function HomePageClientInner() {
             <a href="#events" className="whitespace-nowrap hover:text-zinc-800">
               Events
             </a>
+            <a href="#partners" className="whitespace-nowrap hover:text-zinc-800">
+              Partners
+            </a>
             <a href="#network" className="whitespace-nowrap hover:text-zinc-800">
               Network
             </a>
@@ -63,6 +67,7 @@ function HomePageClientInner() {
         <EventGallery />
         <HowItWorks />
         <WhyJoin />
+        <PartnerLogoMarquee />
         <SocialProof />
         <FinalCta onJoin={openJoin} />
       </div>

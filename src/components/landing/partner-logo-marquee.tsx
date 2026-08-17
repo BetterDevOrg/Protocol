@@ -15,7 +15,7 @@ export function PartnerLogoMarquee() {
       <div className="mx-auto max-w-[900px] px-5 text-center sm:px-8">
         <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-zinc-400">Trusted partners</p>
         <Link href="/partnership" className="mt-1 inline-block text-sm text-brand-sky transition hover:text-white">
-          View all partnerships →
+          Become a partner →
         </Link>
       </div>
 

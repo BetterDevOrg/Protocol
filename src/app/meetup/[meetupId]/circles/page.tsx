@@ -9,6 +9,7 @@ import {
   sanitizeMemberNumberInput,
 } from "@/lib/community-id";
 import type { StoredBuilderCircle } from "@/lib/builder-circle-config";
+import { Spinner } from "@/components/ui/spinner";
 
 function BuilderCirclesView() {
   const params = useParams();
@@ -209,7 +210,14 @@ export default function MeetupBuilderCirclesPage() {
   return (
     <div className="min-h-dvh bg-black px-5 py-16 text-white">
       <div className="mx-auto max-w-2xl">
-        <Suspense fallback={<div className="text-zinc-500">Loading…</div>}>
+        <Suspense
+          fallback={
+            <div className="flex items-center justify-center gap-2 text-zinc-500" role="status">
+              <Spinner className="h-4 w-4" />
+              <span>Loading…</span>
+            </div>
+          }
+        >
           <BuilderCirclesView />
         </Suspense>
       </div>

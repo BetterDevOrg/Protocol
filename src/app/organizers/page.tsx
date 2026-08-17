@@ -4,6 +4,33 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { Organizer } from "@/types/organizer";
 
+// Helper map for country flag badges
+const COUNTRY_FLAGS: Record<string, string> = {
+  Nigeria: "🇳🇬",
+  India: "🇮🇳",
+  "United States": "🇺🇸",
+  USA: "🇺🇸",
+  UK: "🇬🇧",
+  "United Kingdom": "🇬🇧",
+  Canada: "🇨🇦",
+  Germany: "🇩🇪",
+  France: "🇫🇷",
+  Spain: "🇪🇸",
+  Brazil: "🇧🇷",
+  Japan: "🇯🇵",
+  Australia: "🇦🇺",
+  Kenya: "🇰🇪",
+  Ghana: "🇬🇭",
+  "South Africa": "🇿🇦",
+};
+
+// Graceful fallback helper function
+function getCountryBadge(country?: string | null) {
+  if (!country) return null;
+  const trimmed = country.trim();
+  return COUNTRY_FLAGS[trimmed] || "🌐";
+}
+
 export default function OrganizersDirectoryPage() {
   const [organizers, setOrganizers] = useState<Organizer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -99,10 +126,20 @@ export default function OrganizersDirectoryPage() {
                   href={`/organizers/${organizer.organizerId}`}
                   className="block rounded-2xl border border-white/10 bg-white/[0.035] p-5 transition hover:border-brand-sky/30 hover:bg-white/[0.05]"
                 >
-                  <p className="font-black text-white">{organizer.fullName || "City organizer"}</p>
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-black text-white">{organizer.fullName || "City organizer"}</p>
+                    {organizer.country && (
+                      <span
+                        className="inline-flex shrink-0 items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-xs font-medium text-zinc-300"
+                        title={organizer.country}
+                      >
+                        <span aria-hidden="true">{getCountryBadge(organizer.country)}</span>
+                        <span className="text-[11px] text-zinc-400">{organizer.country}</span>
+                      </span>
+                    )}
+                  </div>
                   <p className="mt-1 text-sm text-zinc-400">
-                    {organizer.city}
-                    {organizer.country ? `, ${organizer.country}` : ""}
+                    {organizer.city || "Unknown City"}
                   </p>
                   <div className="mt-4 flex flex-wrap gap-3 text-xs font-bold text-zinc-500">
                     <span className="font-mono text-brand-sky">{organizer.organizerId}</span>

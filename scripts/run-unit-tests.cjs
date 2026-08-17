@@ -20,6 +20,7 @@ require("tsconfig-paths/register");
   "FormatDate",
   "OrganizerCode",
   "BuilderCircleMatching",
+  "RateLimit",
 ].forEach((testFile) => {
   require(path.join(projectRoot, "test", testFile));
 });

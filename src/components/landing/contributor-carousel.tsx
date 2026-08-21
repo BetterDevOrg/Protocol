@@ -16,18 +16,36 @@ function slotStyle(offset: number) {
   return { size, opacity, zIndex };
 }
 
+function PauseIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <rect x="6" y="5" width="4" height="14" rx="1" />
+      <rect x="14" y="5" width="4" height="14" rx="1" />
+    </svg>
+  );
+}
+
+function PlayIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M8 5.14v13.72a1 1 0 0 0 1.5.86l11-6.86a1 1 0 0 0 0-1.72l-11-6.86a1 1 0 0 0-1.5.86Z" />
+    </svg>
+  );
+}
+
 export function ContributorCarousel() {
   const reducedMotion = useReducedMotion();
   const count = EARLY_CONTRIBUTORS.length;
   const [activeIndex, setActiveIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
-    if (reducedMotion || count < 2) return;
+    if (reducedMotion || paused || count < 2) return;
     const id = window.setInterval(() => {
       setActiveIndex((i) => (i + 1) % count);
     }, PAUSE_MS);
     return () => window.clearInterval(id);
-  }, [reducedMotion, count]);
+  }, [reducedMotion, paused, count]);
 
   const active = EARLY_CONTRIBUTORS[activeIndex];
 
@@ -78,6 +96,18 @@ export function ContributorCarousel() {
           @{active.github}
         </a>
       </div>
+
+      {!reducedMotion && count >= 2 ? (
+        <button
+          type="button"
+          aria-pressed={paused}
+          aria-label={paused ? "Play carousel" : "Pause carousel"}
+          onClick={() => setPaused((current) => !current)}
+          className="mt-4 inline-flex size-9 items-center justify-center rounded-full border border-white/15 text-zinc-400 transition hover:border-white/30 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-[0.98]"
+        >
+          {paused ? <PlayIcon /> : <PauseIcon />}
+        </button>
+      ) : null}
 
       <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-600">
         Our awesome contributors
